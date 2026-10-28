@@ -8,13 +8,13 @@
 
     <!-- Top In-Game HUD -->
     <div class="game-header-bar">
-      <div class="game-hud-stat">
+      <div class="game-hud-stat hud-skald-name">
         <span class="game-hud-label">Скальд</span>
-        <span class="game-hud-val player-name-display" id="btnEditName" style="cursor: pointer; font-size: 1rem; color: #fff;" title="Нажми, чтобы изменить имя">Скальд ✏️</span>
+        <span class="game-hud-val player-name-display" id="btnEditName" style="cursor: pointer;" title="Нажми для смены имени">Скальд ✏️</span>
       </div>
 
       <div class="game-hud-stat">
-        <span class="game-hud-label">Очки Саги</span>
+        <span class="game-hud-label">Очки</span>
         <span class="game-hud-val" id="gameHudScore">0</span>
       </div>
 
@@ -68,12 +68,12 @@
     <!-- Active Skill / Odin Blessing Control Bar -->
     <div class="game-skill-bar">
       <button class="odin-skill-btn" id="btnOdinSkill">
-        <span>⚡ Благословение Одина (Замедление 5с)</span>
+        <span>⚡ Замедление 5с</span>
         <span class="odin-skill-count" id="odinSkillCount">1</span>
       </button>
 
-      <button class="btn btn-outline btn-sm" id="btnOpenUpgrades" style="white-space: nowrap;">
-        ✨ Лавка Скальда
+      <button class="btn btn-outline btn-sm" id="btnOpenUpgrades" style="white-space: nowrap; padding: 0.75rem 1.1rem;">
+        ✨ Лавка
       </button>
     </div>
   </div>

@@ -60,11 +60,11 @@ class BragiHarpGame {
     // Screen shake
     this.shakeIntensity = 0;
 
-    // Visual assets
+    // Visual assets (using relative path for GitHub Pages compatibility)
     this.emblemImg = new Image();
-    this.emblemImg.src = '/static/logo/emblem_gold.png';
+    this.emblemImg.src = 'static/logo/emblem_gold.png';
     this.logoImg = new Image();
-    this.logoImg.src = '/static/logo/logo_gold.png';
+    this.logoImg.src = 'static/logo/logo_gold.png';
 
     // Target line (where runes should be hit)
     this.hitLineY = 0;
@@ -76,19 +76,35 @@ class BragiHarpGame {
   }
 
   initCanvasSize() {
-    const rect = this.canvas.parentElement.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    this.width = rect.width;
-    this.height = Math.min(580, window.innerHeight * 0.72);
+    const container = this.canvas.parentElement;
+    const rect = container.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.width = rect.width || window.innerWidth;
 
-    this.canvas.width = this.width * dpr;
-    this.canvas.height = this.height * dpr;
+    // Calculate dynamic height to fit completely on mobile screen without scrolling
+    const navbar = document.querySelector('.navbar');
+    const hud = document.querySelector('.game-header-bar');
+    const skillBar = document.querySelector('.game-skill-bar');
+
+    const navH = navbar ? navbar.offsetHeight : 55;
+    const hudH = hud ? hud.offsetHeight : 45;
+    const skillH = skillBar ? skillBar.offsetHeight : 48;
+
+    // Total available vertical viewport height minus top and bottom UI
+    const availH = window.innerHeight - navH - hudH - skillH - 30;
+    this.height = Math.max(340, Math.min(availH, 560));
+
+    this.canvas.width = Math.round(this.width * dpr);
+    this.canvas.height = Math.round(this.height * dpr);
     this.canvas.style.width = `${this.width}px`;
     this.canvas.style.height = `${this.height}px`;
 
+    if (this.ctx.resetTransform) {
+      this.ctx.resetTransform();
+    }
     this.ctx.scale(dpr, dpr);
     this.laneWidth = this.width / this.lanesCount;
-    this.hitLineY = this.height * 0.82;
+    this.hitLineY = this.height * 0.80;
   }
 
   async loadPlayerProfile() {

@@ -115,10 +115,10 @@
       <div class="beer-card">
         <div class="beer-img-wrap">
           <img src="{{ url_for('static', filename='img/' + beer.image) }}" alt="{{ beer.name }}" class="beer-img" loading="lazy">
-          <div class="beer-badge-style">{{ beer.style }}</div>
         </div>
 
         <div class="beer-body">
+          <div class="beer-badge-style">{{ beer.style }}</div>
           <h3 class="beer-name">{{ beer.name }}</h3>
           <p class="beer-desc">{{ beer.desc }}</p>
 
