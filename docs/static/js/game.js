@@ -76,23 +76,13 @@ class BragiHarpGame {
   }
 
   initCanvasSize() {
-    const container = this.canvas.parentElement;
-    const rect = container.getBoundingClientRect();
+    const box = document.getElementById('pureCanvasBox') || this.canvas.parentElement;
+    if (!box) return;
+    const rect = box.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.width = rect.width || window.innerWidth;
 
-    // Calculate dynamic height to fit completely on mobile screen without scrolling
-    const navbar = document.querySelector('.navbar');
-    const hud = document.querySelector('.game-header-bar');
-    const skillBar = document.querySelector('.game-skill-bar');
-
-    const navH = navbar ? navbar.offsetHeight : 55;
-    const hudH = hud ? hud.offsetHeight : 45;
-    const skillH = skillBar ? skillBar.offsetHeight : 48;
-
-    // Total available vertical viewport height minus top and bottom UI
-    const availH = window.innerHeight - navH - hudH - skillH - 30;
-    this.height = Math.max(340, Math.min(availH, 560));
+    this.width = Math.round(rect.width) || window.innerWidth;
+    this.height = Math.round(rect.height) || 480;
 
     this.canvas.width = Math.round(this.width * dpr);
     this.canvas.height = Math.round(this.height * dpr);
@@ -105,6 +95,31 @@ class BragiHarpGame {
     this.ctx.scale(dpr, dpr);
     this.laneWidth = this.width / this.lanesCount;
     this.hitLineY = this.height * 0.80;
+  }
+
+  openGameModal() {
+    const modal = document.getElementById('pureGameModal');
+    if (!modal) return;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    window.bragiAudio.ensureContext();
+    this.initCanvasSize();
+    setTimeout(() => this.initCanvasSize(), 60);
+    setTimeout(() => this.initCanvasSize(), 220);
+  }
+
+  closeGameModal() {
+    const modal = document.getElementById('pureGameModal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    if (this.isRunning) {
+      this.isRunning = false;
+      window.bragiAudio.stopAmbientDrone();
+    }
+    if (window.location.pathname.endsWith('/game') || window.location.pathname.endsWith('game.html')) {
+      window.location.href = window.location.pathname.includes('.html') ? 'index.html' : '/';
+    }
   }
 
   async loadPlayerProfile() {
@@ -132,10 +147,10 @@ class BragiHarpGame {
   }
 
   updateHeaderMead(amount) {
-    const el = document.getElementById('headerMeadCount');
-    if (el) el.textContent = amount;
-    const hud = document.getElementById('gameHudMead');
-    if (hud) hud.textContent = amount;
+    ['headerMeadCount', 'gameHudMead', 'pureHudMead'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = amount;
+    });
   }
 
   updateOdinButtonUI() {
@@ -145,8 +160,45 @@ class BragiHarpGame {
     if (btn) btn.disabled = this.odinBlessings <= 0 || this.isOdinActive;
   }
 
+  updatePureAudioBtn(isMuted) {
+    const btn = document.getElementById('btnPureAudioToggle');
+    if (btn) btn.textContent = isMuted ? '🔇' : '🔊';
+  }
+
   bindEvents() {
     window.addEventListener('resize', () => this.initCanvasSize());
+
+    // Triggers for opening/closing the pure game modal window
+    document.querySelectorAll('.btn-open-game-window').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.openGameModal();
+      });
+    });
+
+    const closeBtn = document.getElementById('btnCloseGameModal');
+    if (closeBtn) closeBtn.addEventListener('click', () => this.closeGameModal());
+
+    const pureAudioBtn = document.getElementById('btnPureAudioToggle');
+    if (pureAudioBtn) {
+      pureAudioBtn.addEventListener('click', () => {
+        const isMuted = window.bragiAudio.toggleMute();
+        this.updatePureAudioBtn(isMuted);
+      });
+    }
+
+    // Upgrades modal triggers inside game
+    const openUpgSplash = document.getElementById('btnOpenUpgradesSplash');
+    const openUpgPure = document.getElementById('btnOpenUpgradesPure');
+    const upgradesModal = document.getElementById('upgradesModal');
+    [openUpgSplash, openUpgPure].forEach(btn => {
+      if (btn && upgradesModal) {
+        btn.addEventListener('click', () => {
+          if (window.bragiApp) window.bragiApp.renderUpgradesDrawer();
+          upgradesModal.classList.add('active');
+        });
+      }
+    });
 
     // Mouse / Touch tap handling
     const handleTap = (clientX, clientY) => {
@@ -681,14 +733,22 @@ class BragiHarpGame {
   }
 
   updateHUD() {
-    const scoreEl = document.getElementById('gameHudScore');
-    if (scoreEl) scoreEl.textContent = this.score.toLocaleString('ru-RU');
+    const scoreStr = this.score.toLocaleString('ru-RU');
+    const comboStr = `${this.combo}x`;
+    const timeStr = `${Math.ceil(this.timeRemaining)}с`;
 
-    const comboEl = document.getElementById('gameHudCombo');
-    if (comboEl) comboEl.textContent = `${this.combo}x`;
-
-    const timeEl = document.getElementById('gameHudTime');
-    if (timeEl) timeEl.textContent = `${Math.ceil(this.timeRemaining)}с`;
+    ['pureHudScore', 'gameHudScore'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = scoreStr;
+    });
+    ['pureHudCombo', 'gameHudCombo'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = comboStr;
+    });
+    ['pureHudTime', 'gameHudTime'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = timeStr;
+    });
   }
 
   async endGame() {
