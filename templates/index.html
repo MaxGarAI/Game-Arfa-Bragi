@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}«АРФА БРАГИ» — Крафтовая пивоварня & Игра Скальдов{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container">
+    <div class="hero-logo-box">
+      <img src="{{ url_for('static', filename=logos.main_logo) }}" alt="{{ brewery_name }}" class="hero-logo-img">
+    </div>
+
+    <h1 class="hero-title">
+      СКАЗАНИЯ СЕВЕРА <br>
+      <span class="text-gradient-gold">В КАЖДОЙ ПИНТЕ</span>
+    </h1>
+
+    <div class="hero-manifesto">
+      «Хочешь узнать человека — либо сразись с ним, либо выпей с ним»
+    </div>
+
+    <p class="hero-subtitle">
+      Сыграй на волшебной арфе скандинавского бога поэзии Браги. Выбивай руны в такт, накапливай золотую медовуху 🍯 и обменивай её на реальные скидки и подарки в нашей крафтовой пивоварне!
+    </p>
+
+    <div class="hero-actions">
+      <a href="{{ url_for('game') }}" class="btn btn-gold btn-lg">
+        ⚡ Начать играть в Арфу
+      </a>
+      <a href="{{ url_for('rewards') }}" class="btn btn-outline btn-lg">
+        🍯 Обменять медовуху
+      </a>
+      <button class="btn btn-outline" id="btnOpenUpgrades">
+        ✨ Прокачка скальда
+      </button>
+    </div>
+
+    <!-- Daily Login Streak Widget -->
+    <div class="streak-widget-card">
+      <div class="streak-header">
+        <div class="streak-title">
+          <span>🔥</span> Ежедневный дар Одина: Серия <span id="streakDaysCount">1</span> дн.
+        </div>
+        <div class="text-muted" style="font-size: 0.85rem;">
+          Следующая награда: <strong class="text-gold" id="streakNextReward">+30 🍯</strong>
+        </div>
+      </div>
+
+      <div class="streak-steps">
+        {% for reward in daily_rewards %}
+        <div class="streak-step {% if loop.index == 1 %}active{% endif %}">
+          <span class="streak-day-label">День {{ loop.index }}</span>
+          <span class="streak-day-reward">+{{ reward }} 🍯</span>
+        </div>
+        {% endfor %}
+      </div>
+
+      <button class="btn btn-gold btn-sm" id="btnClaimDaily" style="width: 100%;">
+        Забрать награду Одина
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- How Game & Gamification Works -->
+<section class="section" style="background: rgba(14, 17, 23, 0.6); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">Геймификация пивоварни</div>
+      <h2 class="section-title">КАК ЭТО РАБОТАЕТ</h2>
+      <p class="section-desc">Три простых шага от ритмической саги до бокала холодного авторского эля</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem;">
+      <div class="viking-card" style="text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🎻</div>
+        <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem;" class="text-gradient-gold">1. Играй в такт рун</h3>
+        <p class="text-muted" style="font-size: 0.9rem;">
+          Тапай по летящим скандинавским рунам под звуки кельтской арфы. Удерживай комбо, лови бонусные хмельные бочонки и получай множители очков.
+        </p>
+      </div>
+
+      <div class="viking-card" style="text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🍯</div>
+        <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem;" class="text-gradient-gold">2. Зарабатывай медовуху</h3>
+        <p class="text-muted" style="font-size: 0.9rem;">
+          Очки конвертируются в игровую валюту — священную медовуху Браги. Прокачивай струны арфы и рог для питья, чтобы фармить ещё больше наград!
+        </p>
+      </div>
+
+      <div class="viking-card" style="text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🍺</div>
+        <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem;" class="text-gradient-gold">3. Забирай промокоды</h3>
+        <p class="text-muted" style="font-size: 0.9rem;">
+          Обменивай медовуху на скидки от 5% до 20% или порцию сочных варёных раков к крафтовому пиву при оформлении заказа в нашем магазине.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Beer Showcase Section -->
+<section class="section" id="beers">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">Авторское производство</div>
+      <h2 class="section-title">ПИВНАЯ КАРТА ЧЕРТОГА</h2>
+      <p class="section-desc">
+        Сварено на собственной пивоварне в Майкопе из отборного солода, чистейшей родниковой воды и благородного хмеля.
+      </p>
+    </div>
+
+    <div class="beer-grid">
+      {% for beer in featured_beers %}
+      <div class="beer-card">
+        <div class="beer-img-wrap">
+          <img src="{{ url_for('static', filename='img/' + beer.image) }}" alt="{{ beer.name }}" class="beer-img" loading="lazy">
+          <div class="beer-badge-style">{{ beer.style }}</div>
+        </div>
+
+        <div class="beer-body">
+          <h3 class="beer-name">{{ beer.name }}</h3>
+          <p class="beer-desc">{{ beer.desc }}</p>
+
+          <div class="beer-specs-grid">
+            <div>
+              <div class="beer-spec-val">{{ beer.abv }}</div>
+              <div class="beer-spec-lbl">Крепость</div>
+            </div>
+            <div>
+              <div class="beer-spec-val">{{ beer.density }}</div>
+              <div class="beer-spec-lbl">Плотность</div>
+            </div>
+            <div>
+              <div class="beer-spec-val">{{ beer.ibu }}</div>
+              <div class="beer-spec-lbl">Горечь</div>
+            </div>
+          </div>
+
+          <div class="beer-pairing">
+            <strong>Гастропара:</strong> {{ beer.pairing }}
+          </div>
+
+          <div class="beer-footer">
+            <div>
+              <div class="beer-price-val">{{ beer.price }}</div>
+              <div class="beer-price-unit">за 1 литр розлива</div>
+            </div>
+            <a href="{{ shop_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-gold btn-sm">
+              В магазин ↗
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="text-align: center; margin-top: 3rem;">
+      <a href="{{ shop_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-lg">
+        Посмотреть весь ассортимент в магазине ↗
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Crayfish & Brewery Lore Section -->
+<section class="section" style="background: radial-gradient(circle at 50% 50%, rgba(192, 57, 43, 0.08) 0%, transparent 70%);">
+  <div class="container">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 3rem; align-items: center;">
+      <div>
+        <div class="section-eyebrow" style="color: var(--ruby-accent);">Свежайший улов</div>
+        <h2 class="section-title">ЧЕРТОГ СВЕЖИХ РАКОВ</h2>
+        <p class="text-muted" style="margin-bottom: 1.5rem;">
+          Пивоварня «АРФА БРАГИ» славится не только элями, но и собственным витринным аквариумом с живыми донскими и кавказскими раками. 
+          Фирменная варка в крафтовом пиве с луговым укропом, душистым перцем и солью — главное блюдо любого скандинавского пира!
+        </p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <a href="{{ url_for('rewards') }}" class="btn btn-ruby">
+            🦞 Выиграть раков в игре
+          </a>
+          <a href="{{ shop_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+            Заказать раков ↗
+          </a>
+        </div>
+      </div>
+
+      <div class="viking-card" style="padding: 0; overflow: hidden; border-color: rgba(192, 57, 43, 0.35);">
+        <img src="{{ url_for('static', filename='img/crayfish_aquarium.png') }}" alt="Чертог раков" style="width: 100%; height: 320px; object-fit: cover; display: block;">
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Управление промокодами — Панель пивоварни «АРФА БРАГИ»{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <div class="section-eyebrow">Служебный чертог</div>
+        <h1 class="section-title" style="font-size: 2rem; margin-bottom: 0;">ВЫДАННЫЕ ПРОМОКОДЫ</h1>
+      </div>
+
+      <div style="display: flex; gap: 0.8rem; align-items: center;">
+        <button class="btn btn-outline btn-sm" id="btnExportCsv">
+          📥 Экспорт в CSV
+        </button>
+        <a href="{{ url_for('admin_logout') }}" class="btn btn-ruby btn-sm">
+          Выйти
+        </a>
+      </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+      <div class="viking-card" style="padding: 1.25rem;">
+        <div class="text-muted" style="font-size: 0.78rem; text-transform: uppercase;">Всего выдано</div>
+        <div style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: #fff;">{{ total_promos }}</div>
+      </div>
+
+      <div class="viking-card" style="padding: 1.25rem;">
+        <div class="text-muted" style="font-size: 0.78rem; text-transform: uppercase;">Активных (к погашению)</div>
+        <div style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: var(--gold-bright);">{{ active_count }}</div>
+      </div>
+
+      <div class="viking-card" style="padding: 1.25rem;">
+        <div class="text-muted" style="font-size: 0.78rem; text-transform: uppercase;">Использовано (погашено)</div>
+        <div style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: #2ecc71;">{{ used_count }}</div>
+      </div>
+    </div>
+
+    <!-- Filter & Search Toolbar -->
+    <div class="viking-card" style="margin-bottom: 2rem; padding: 1.2rem;">
+      <form method="GET" action="{{ url_for('admin_promos') }}" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <input type="text" name="search" value="{{ search }}" placeholder="Поиск по коду или имени скальда..." 
+               style="flex-grow: 1; min-width: 240px; padding: 0.65rem 1rem; background: #080a0e; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: #fff;">
+        
+        <select name="status" style="padding: 0.65rem 1rem; background: #080a0e; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: #fff;">
+          <option value="all" {% if status == 'all' %}selected{% endif %}>Все статусы</option>
+          <option value="active" {% if status == 'active' %}selected{% endif %}>Только активные</option>
+          <option value="used" {% if status == 'used' %}selected{% endif %}>Только использованные</option>
+        </select>
+
+        <button type="submit" class="btn btn-gold btn-sm">Искать</button>
+        {% if search or status != 'all' %}
+          <a href="{{ url_for('admin_promos') }}" class="btn btn-outline btn-sm">Сброс</a>
+        {% endif %}
+      </form>
+    </div>
+
+    <!-- Promos Table -->
+    <div class="leaderboard-table-card">
+      <table class="skald-table" id="promosTable">
+        <thead>
+          <tr>
+            <th>Промокод</th>
+            <th>Награда / Скидка</th>
+            <th>Скальд</th>
+            <th>Стоимость</th>
+            <th>Дата выдачи</th>
+            <th>Статус</th>
+            <th style="text-align: right;">Действие</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if promos %}
+            {% for p in promos %}
+            <tr id="row-{{ p.id }}">
+              <td>
+                <span class="promo-code-text" style="font-size: 1.05rem;">{{ p.code }}</span>
+              </td>
+              <td>
+                <strong style="color: #fff;">{{ p.title }}</strong>
+                <span style="font-size: 0.75rem; color: var(--gold-bright); margin-left: 0.4rem;">({{ p.discount_percent }}%)</span>
+              </td>
+              <td>{{ p.player_name or 'Анонимный скальд' }}</td>
+              <td>{{ p.mead_cost }} 🍯</td>
+              <td style="font-size: 0.8rem; color: var(--text-muted);">
+                {{ p.created_at[:16].replace('T', ' ') if p.created_at else '' }}
+              </td>
+              <td>
+                <span class="status-badge-val" id="badge-{{ p.id }}" style="font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: var(--radius-full); font-weight: 700; background: {% if p.is_used %}rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71;{% else %}rgba(229, 169, 60, 0.2); color: var(--gold-bright); border: 1px solid var(--border-gold);{% endif %}">
+                  {% if p.is_used %}ПОГАШЕН{% else %}АКТИВЕН{% endif %}
+                </span>
+              </td>
+              <td style="text-align: right;">
+                <button class="btn btn-outline btn-sm btn-toggle-status" data-id="{{ p.id }}">
+                  {% if p.is_used %}Вернуть в активные{% else %}Отметить погашенным{% endif %}
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-dim);">
+                Промокоды не найдены.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Toggle promo code status via AJAX
+    document.querySelectorAll('.btn-toggle-status').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const promoId = btn.getAttribute('data-id');
+        try {
+          const res = await fetch(`/admin/promos/toggle/${promoId}`, { method: 'POST' });
+          const data = await res.json();
+          if (data && data.success) {
+            window.location.reload();
+          }
+        } catch (e) {
+          alert('Ошибка обновления статуса промокода');
+        }
+      });
+    });
+
+    // Export CSV
+    const exportBtn = document.getElementById('btnExportCsv');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        const rows = document.querySelectorAll('#promosTable tr');
+        let csv = [];
+        rows.forEach(r => {
+          const cols = r.querySelectorAll('th, td');
+          const rowData = [];
+          cols.forEach(c => rowData.push('"' + c.innerText.replace(/"/g, '""').trim() + '"'));
+          csv.push(rowData.join(';'));
+        });
+
+        const blob = new Blob(["\uFEFF" + csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `arfa_bragi_promos_${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+      });
+    }
+  });
+</script>
+{% endblock %}

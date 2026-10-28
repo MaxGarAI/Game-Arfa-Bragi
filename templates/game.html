@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Игра «Арфа Браги» — Ритм-кликер крафтовой пивоварни{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="game-layout">
+
+    <!-- Top In-Game HUD -->
+    <div class="game-header-bar">
+      <div class="game-hud-stat">
+        <span class="game-hud-label">Скальд</span>
+        <span class="game-hud-val player-name-display" id="btnEditName" style="cursor: pointer; font-size: 1rem; color: #fff;" title="Нажми, чтобы изменить имя">Скальд ✏️</span>
+      </div>
+
+      <div class="game-hud-stat">
+        <span class="game-hud-label">Очки Саги</span>
+        <span class="game-hud-val" id="gameHudScore">0</span>
+      </div>
+
+      <div class="game-hud-stat">
+        <span class="game-hud-label">Комбо</span>
+        <span class="game-hud-val" id="gameHudCombo" style="color: var(--gold-bright);">0x</span>
+      </div>
+
+      <div class="game-hud-stat">
+        <span class="game-hud-label">Время</span>
+        <span class="game-hud-val" id="gameHudTime">45с</span>
+      </div>
+
+      <div class="game-hud-stat">
+        <span class="game-hud-label">Медовуха</span>
+        <span class="game-hud-val" style="color: #ffd32a;"><span id="gameHudMead">0</span> 🍯</span>
+      </div>
+    </div>
+
+    <!-- Canvas Game Container -->
+    <div class="canvas-container">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- Splash Screen Overlay (before start) -->
+      <div class="modal-overlay active" id="gameSplashOverlay" style="position: absolute; border-radius: var(--radius-lg);">
+        <div style="text-align: center; max-width: 460px; padding: 1.5rem;">
+          <img src="{{ url_for('static', filename=logos.main_logo) }}" alt="{{ brewery_name }}" style="max-height: 70px; margin-bottom: 1rem;">
+          <h2 class="font-viking text-gradient-gold" style="font-size: 1.8rem; margin-bottom: 0.5rem;">АРФА БРАГИ</h2>
+          <p class="text-muted" style="font-size: 0.88rem; margin-bottom: 1.5rem;">
+            Тапай по летящим рунам на струнах арфы, когда они достигают нижней золотой линии. 
+            Удерживай непрерывное комбо для x10 множителя очков!
+          </p>
+
+          <div style="background: rgba(12, 14, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 1.5rem; font-size: 0.8rem; color: var(--gold-bright);">
+            📱 <strong>На телефоне:</strong> тапай одним пальцем по струнам или рунам<br>
+            💻 <strong>На ПК:</strong> клавиши <strong>D, F, J, K</strong> или <strong>1, 2, 3, 4</strong> (Пробел — замедление)
+          </div>
+
+          <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-gold btn-lg" id="btnStartGame">
+              ⚡ Начать сагу!
+            </button>
+            <button class="btn btn-outline" id="btnOpenUpgrades">
+              ✨ Прокачка
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Skill / Odin Blessing Control Bar -->
+    <div class="game-skill-bar">
+      <button class="odin-skill-btn" id="btnOdinSkill">
+        <span>⚡ Благословение Одина (Замедление 5с)</span>
+        <span class="odin-skill-count" id="odinSkillCount">1</span>
+      </button>
+
+      <button class="btn btn-outline btn-sm" id="btnOpenUpgrades" style="white-space: nowrap;">
+        ✨ Лавка Скальда
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Game Over / Victory Modal -->
+<div class="modal-overlay" id="gameResultModal">
+  <div class="modal-content" style="text-align: center; max-width: 520px;">
+    <img src="{{ url_for('static', filename=logos.emblem) }}" alt="{{ brewery_name }}" style="max-height: 75px; margin-bottom: 0.8rem;">
+    <h3 class="font-viking text-gradient-gold" style="font-size: 1.8rem; margin-bottom: 0.2rem;">САГА ЗАВЕРШЕНА!</h3>
+    <div id="resSkaldTitle" style="color: var(--gold-bright); font-weight: 700; margin-bottom: 1.5rem; font-size: 1.1rem;">Любимец Браги</div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.8rem;">
+      <div style="background: rgba(12, 14, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
+        <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Очки саги</div>
+        <div id="resScore" style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800; color: var(--gold-bright);">0</div>
+      </div>
+
+      <div style="background: rgba(12, 14, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
+        <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Заработано медовухи</div>
+        <div id="resMeadEarned" style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800; color: #ffd32a;">+0 🍯</div>
+      </div>
+
+      <div style="background: rgba(12, 14, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.8rem;">
+        <div class="text-muted" style="font-size: 0.72rem; text-transform: uppercase;">Макс. серия (Комбо)</div>
+        <div id="resMaxCombo" style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: #fff;">0x</div>
+      </div>
+
+      <div style="background: rgba(12, 14, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.8rem;">
+        <div class="text-muted" style="font-size: 0.72rem; text-transform: uppercase;">Попаданий по рунам</div>
+        <div id="resRunesHit" style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: #fff;">0</div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      <button class="btn btn-gold btn-lg" id="btnRestartGame">
+        🔄 Сыграть снова
+      </button>
+
+      <button class="btn btn-outline" id="btnShareScore">
+        📸 Поделиться сагой (Скачать карточку)
+      </button>
+
+      <a href="{{ url_for('rewards') }}" class="btn btn-outline" style="border-color: rgba(229, 169, 60, 0.3);">
+        🍯 Обменять медовуху на промокод
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+{% endblock %}

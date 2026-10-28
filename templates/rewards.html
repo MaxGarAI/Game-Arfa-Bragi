@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Обмен медовухи на промокоды — «АРФА БРАГИ»{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">Твоя награда за ритм и ловкость</div>
+      <h1 class="section-title">МЕДОВЫЙ ЧЕРТОГ НАГРАД</h1>
+      <p class="section-desc">
+        Обменивай заработанную в игре медовуху 🍯 на уникальные промокоды на крафтовое пиво и сочных раков.
+        Каждый промокод генерируется индивидуально на сервере и готов к использованию в магазине!
+      </p>
+
+      <div style="margin-top: 1.5rem; display: inline-flex; align-items: center; gap: 1rem; background: rgba(19, 22, 28, 0.85); border: 1px solid var(--border-gold); padding: 0.6rem 1.4rem; border-radius: var(--radius-full);">
+        <span class="text-muted" style="font-size: 0.9rem;">Твой баланс:</span>
+        <span style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--gold-bright);">
+          <span id="rewardsMeadBalance">0</span> 🍯
+        </span>
+        <a href="{{ url_for('game') }}" class="btn btn-gold btn-sm">Добыть ещё в игре ⚡</a>
+      </div>
+    </div>
+
+    <!-- Promo Tiers Grid -->
+    <div class="rewards-grid">
+      {% for key, tier in promo_tiers.items() %}
+      <div class="promo-tier-card">
+        <span class="promo-badge">{{ tier.badge }}</span>
+
+        <div class="promo-cost-box">
+          <span>{{ tier.mead_cost }}</span>
+          <span style="font-size: 1.1rem;">🍯</span>
+        </div>
+
+        <h3 class="promo-title text-gradient-gold">{{ tier.title }}</h3>
+        <p class="promo-desc">{{ tier.desc }}</p>
+
+        <button class="btn btn-gold btn-exchange-tier" data-tier="{{ key }}" style="width: 100%;">
+          Забрать за {{ tier.mead_cost }} 🍯
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Claimed Promos Section -->
+    <div class="claimed-promos-box">
+      <h3 class="font-viking text-gradient-gold" style="font-size: 1.4rem; margin-bottom: 0.5rem;">
+        Твои активные промокоды
+      </h3>
+      <p class="text-muted" style="font-size: 0.88rem; margin-bottom: 1.5rem;">
+        Назови этот промокод при заказе на кассе в магазине (Майкоп, ул. Победа 171) или введи при оформлении онлайн.
+      </p>
+
+      <div id="claimedPromosList">
+        <p class="text-muted" style="font-style: italic;">Загрузка выданных промокодов...</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Sync balance display
+    const updateBalance = () => {
+      if (window.bragiApp && window.bragiApp.player) {
+        const balEl = document.getElementById('rewardsMeadBalance');
+        if (balEl) balEl.textContent = window.bragiApp.player.mead;
+        renderClaimedPromos(window.bragiApp.player.claimed_promos || []);
+      }
+    };
+
+    setTimeout(updateBalance, 200);
+
+    // Bind exchange buttons
+    document.querySelectorAll('.btn-exchange-tier').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tier = btn.getAttribute('data-tier');
+        if (window.bragiApp) {
+          window.bragiApp.exchangePromo(tier);
+        }
+      });
+    });
+
+    function renderClaimedPromos(promos) {
+      const container = document.getElementById('claimedPromosList');
+      if (!container) return;
+
+      if (!promos || promos.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 2rem 1rem; color: var(--text-dim);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📜</div>
+            <div>У тебя пока нет сохранённых промокодов.</div>
+            <div style="font-size: 0.85rem; margin-top: 0.4rem;">Сыграй в «Арфу Браги», накопи медовуху и забери свою первую скидку!</div>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      promos.forEach(p => {
+        const isUsed = p.is_used === 1;
+        html += `
+          <div class="promo-code-pill" style="${isUsed ? 'opacity: 0.6; border-color: rgba(255,255,255,0.1);' : ''}">
+            <div>
+              <div style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.2rem;">
+                ${p.title} ${isUsed ? '(Использован)' : '✓ Активен'}
+              </div>
+              <span class="promo-code-text">${p.code}</span>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+              <button class="btn btn-outline btn-sm btn-copy-code" data-code="${p.code}">
+                📋 Скопировать
+              </button>
+              <a href="{{ shop_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-gold btn-sm">
+                В магазин ↗
+              </a>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+  });
+</script>
+{% endblock %}

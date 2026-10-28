@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Чертог Славы — Таблица лидеров «АРФА БРАГИ»{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">Зал славы Вальхаллы</div>
+      <h1 class="section-title">ЧЕРТОГ СКАЛЬДОВ</h1>
+      <p class="section-desc">
+        Имена величайших музыкантов и скальдов Севера, чьи пальцы подчинили себе струны Браги.
+        Еженедельные чемпионы получают особые почести и фирменные подарки в чертоге пивоварни!
+      </p>
+
+      <div style="margin-top: 1.5rem;">
+        <a href="{{ url_for('game') }}" class="btn btn-gold">
+          ⚡ Испытать свои силы в игре
+        </a>
+      </div>
+    </div>
+
+    <!-- Leaderboard Table Card -->
+    <div class="leaderboard-table-card" style="max-width: 900px; margin: 0 auto;">
+      <table class="skald-table">
+        <thead>
+          <tr>
+            <th style="width: 80px;">Место</th>
+            <th>Скальд</th>
+            <th style="text-align: right;">Очки саги</th>
+            <th style="text-align: center;">Комбо</th>
+            <th style="text-align: center;">Песен</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if weekly_top %}
+            {% for item in weekly_top %}
+            <tr>
+              <td>
+                <span class="rank-badge {% if item.rank == 1 %}rank-1{% elif item.rank == 2 %}rank-2{% elif item.rank == 3 %}rank-3{% else %}text-muted{% endif %}">
+                  {{ item.rank }}
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  {{ item.name }}
+                  {% if item.rank == 1 %} 👑{% elif item.rank == 2 %} 🥈{% elif item.rank == 3 %} 🥉{% endif %}
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                {{ "{:,}".format(item.top_score).replace(',', ' ') }}
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                {{ item.best_combo }}x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                {{ item.sessions_count }}
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-dim);">
+                Чертог ждёт своего первого героя! Сыграй в игру и впиши своё имя золотыми рунами.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Weekly Prize Notice -->
+    <div class="viking-card" style="max-width: 900px; margin: 2rem auto 0; text-align: center;">
+      <h3 class="font-viking text-gradient-gold" style="font-size: 1.25rem; margin-bottom: 0.5rem;">
+        🎁 Еженедельный приз для Топ-1 скальда
+      </h3>
+      <p class="text-muted" style="font-size: 0.9rem;">
+        Каждое воскресенье в 23:59 скальд с максимальным счётом недели получает сертификат на <strong>3 литра любого крафтового пива</strong> на кранах и порцию фирменных раков!
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}

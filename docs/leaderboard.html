@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Чертог Славы — Таблица лидеров «АРФА БРАГИ»</title>
+
+  <!-- SEO & Social Meta Tags -->
+  <meta name="description" content="«Арфа Браги» — веб-игра и чертог крафтового пива. Сыграй на арфе бога Браги, добывай медовуху и получай промокоды на авторское пиво и раков в Майкопе!">
+  <meta property="og:title" content="«АРФА БРАГИ» — Крафтовая пивоварня & Игра Скальдов">
+  <meta property="og:description" content="Сыграй на арфе Браги, соревнуйся в ритм-игре и получай скидки на крафтовое пиво!">
+  <meta property="og:image" content="static/logo/logo_gold.png">
+  <meta property="og:type" content="website">
+
+  <!-- Dynamic Favicon from logo files -->
+  <link rel="icon" type="image/png" href="static/logo/favicon.png">
+
+  <!-- Fonts & Styles -->
+  <link rel="stylesheet" href="static/css/style.css">
+  
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-link">
+        <img src="static/logo/emblem_gold.png" alt="АРФА БРАГИ" class="nav-emblem">
+        <div class="brand-text">
+          <span class="brand-title">АРФА БРАГИ</span>
+          <span class="brand-subtitle">Крафтовая пивоварня &amp; Чертог Раков</span>
+        </div>
+      </a>
+
+      <!-- Desktop & Mobile Navigation Links -->
+      <nav>
+        <ul class="nav-menu" id="navMenu">
+          <li><a href="index.html" class="nav-link ">Главная & Витрина</a></li>
+          <li><a href="game.html" class="nav-link ">🎮 Играть в Арфу</a></li>
+          <li><a href="rewards.html" class="nav-link ">🍯 Награды & Скидки</a></li>
+          <li><a href="leaderboard.html" class="nav-link active">🏆 Чертог лидеров</a></li>
+          <li><a href="https://arfabragi.ru" target="_blank" rel="noopener noreferrer" class="nav-link">🛒 Магазин пива ↗</a></li>
+        </ul>
+      </nav>
+
+      <!-- Right Action Bar: Mead Badge & Sound Toggle -->
+      <div class="nav-right">
+        <!-- Mead Balance Badge -->
+        <a href="rewards.html" class="header-mead-badge" title="Твоя медовуха для обмена на скидки">
+          <span class="header-mead-icon">🍯</span>
+          <span id="headerMeadCount">0</span>
+        </a>
+
+        <!-- Sound Toggle Button -->
+        <button id="btnToggleAudio" class="btn btn-outline btn-sm" aria-label="Звук" title="Включить / Выключить звук">
+          <span id="audioBtnIcon">🔊</span>
+        </button>
+
+        <!-- Mobile Burger Button -->
+        <button class="burger-btn" id="burgerBtn" aria-label="Открыть меню">
+          ☰
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  
+    
+  
+
+  <!-- Main Body Content -->
+  <main>
+    
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">Зал славы Вальхаллы</div>
+      <h1 class="section-title">ЧЕРТОГ СКАЛЬДОВ</h1>
+      <p class="section-desc">
+        Имена величайших музыкантов и скальдов Севера, чьи пальцы подчинили себе струны Браги.
+        Еженедельные чемпионы получают особые почести и фирменные подарки в чертоге пивоварни!
+      </p>
+
+      <div style="margin-top: 1.5rem;">
+        <a href="game.html" class="btn btn-gold">
+          ⚡ Испытать свои силы в игре
+        </a>
+      </div>
+    </div>
+
+    <!-- Leaderboard Table Card -->
+    <div class="leaderboard-table-card" style="max-width: 900px; margin: 0 auto;">
+      <table class="skald-table">
+        <thead>
+          <tr>
+            <th style="width: 80px;">Место</th>
+            <th>Скальд</th>
+            <th style="text-align: right;">Очки саги</th>
+            <th style="text-align: center;">Комбо</th>
+            <th style="text-align: center;">Песен</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+            
+            <tr>
+              <td>
+                <span class="rank-badge rank-1">
+                  1
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Скальд
+                   👑
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                21 100
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                24x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge rank-2">
+                  2
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Эгиль Скаллагримссон
+                   🥈
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                18 450
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                112x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge rank-3">
+                  3
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Браги Краснобородый
+                   🥉
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                16 200
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                98x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge text-muted">
+                  4
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Рагнар Лодброк
+                  
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                14 750
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                89x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge text-muted">
+                  5
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Лагерта Щитоносец
+                  
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                13 900
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                84x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge text-muted">
+                  6
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Бьорн Железнобокий
+                  
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                12 400
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                76x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge text-muted">
+                  7
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Снорри Стурлусон
+                  
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                11 100
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                68x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge text-muted">
+                  8
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Фрейдис Эриксдоттир
+                  
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                9 850
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                61x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge text-muted">
+                  9
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Торфинн Карлсефни
+                  
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                8 700
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                55x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge text-muted">
+                  10
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Харальд Прекрасноволосый
+                  
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                7 950
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                48x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge text-muted">
+                  11
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Ивар Бескостный
+                  
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                6 800
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                42x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge text-muted">
+                  12
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Сигурд Змееглазый
+                  
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                5 900
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                38x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge text-muted">
+                  13
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Эрик Рыжий
+                  
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                4 650
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                31x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge text-muted">
+                  14
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Хельги Мудрый
+                  
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                3 400
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                24x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <span class="rank-badge text-muted">
+                  15
+                </span>
+              </td>
+              <td>
+                <div style="font-family: var(--font-heading); font-weight: 700; color: #fff;">
+                  Астрид Светлоокая
+                  
+                </div>
+              </td>
+              <td style="text-align: right; font-family: var(--font-heading); font-weight: 800; color: var(--gold-bright);">
+                2 600
+              </td>
+              <td style="text-align: center; color: var(--text-muted); font-weight: 600;">
+                19x
+              </td>
+              <td style="text-align: center; color: var(--text-dim);">
+                1
+              </td>
+            </tr>
+            
+          
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Weekly Prize Notice -->
+    <div class="viking-card" style="max-width: 900px; margin: 2rem auto 0; text-align: center;">
+      <h3 class="font-viking text-gradient-gold" style="font-size: 1.25rem; margin-bottom: 0.5rem;">
+        🎁 Еженедельный приз для Топ-1 скальда
+      </h3>
+      <p class="text-muted" style="font-size: 0.9rem;">
+        Каждое воскресенье в 23:59 скальд с максимальным счётом недели получает сертификат на <strong>3 литра любого крафтового пива</strong> на кранах и порцию фирменных раков!
+      </p>
+    </div>
+  </div>
+</section>
+
+  </main>
+
+  <!-- Upgrades Drawer Modal (Accessible from anywhere) -->
+  <div class="modal-overlay" id="upgradesModal">
+    <div class="modal-content">
+      <button class="modal-close-btn modal-close-trigger">&times;</button>
+      <h3 class="font-viking text-gradient-gold" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Чертог улучшений скальда</h3>
+      <p class="text-muted" style="font-size: 0.88rem;">Прокачивай арфу Браги и снаряжение за заработанную медовуху 🍯</p>
+      
+      <div class="upgrades-list" id="upgradesDrawerList">
+        <!-- Rendered dynamically by main.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Promo Code Success Modal -->
+  <div class="modal-overlay" id="promoSuccessModal">
+    <div class="modal-content" style="text-align: center;">
+      <button class="modal-close-btn modal-close-trigger">&times;</button>
+      <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🎉</div>
+      <h3 class="font-viking text-gradient-gold" style="font-size: 1.6rem; margin-bottom: 0.5rem;">Промокод получен!</h3>
+      <p class="text-muted" id="promoModalTitle" style="margin-bottom: 1.5rem; font-size: 0.95rem;"></p>
+      
+      <div class="promo-code-pill" style="justify-content: center; margin-bottom: 1.5rem;">
+        <span class="promo-code-text" id="promoModalCode">BRAGI-XXXXX</span>
+      </div>
+
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-outline btn-copy-code" id="btnCopyPromoCode" data-code="">Скопировать код</button>
+        <a href="https://arfabragi.ru" target="_blank" rel="noopener noreferrer" class="btn btn-gold" id="promoModalShopBtn">Активировать в магазине ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Notifications Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Global Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="index.html" class="brand-link" style="margin-bottom: 0.8rem;">
+            <img src="static/logo/logo_gold.png" alt="АРФА БРАГИ" style="max-height: 52px; width: auto;">
+          </a>
+          <p class="footer-brand-desc">
+            Крафтовая пивоварня собственного производства «АРФА БРАГИ» и чертог свежих раков в Майкопе. Авторские эли, древние скандинавские традиции и геймификация для истинных ценителей крафта.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-heading">Навигация</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" class="footer-link">Витрина сортов</a></li>
+            <li><a href="game.html" class="footer-link">Игра «Арфа Браги»</a></li>
+            <li><a href="rewards.html" class="footer-link">Обмен медовухи</a></li>
+            <li><a href="leaderboard.html" class="footer-link">Таблица лидеров</a></li>
+            <li><a href="https://arfabragi.ru" target="_blank" rel="noopener noreferrer" class="footer-link">Интернет-магазин ↗</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-heading">Контакты чертога</h4>
+          <ul class="footer-links">
+            <li class="footer-link">📍 г. Майкоп, ул. Победа, 171</li>
+            <li><a href="tel:+7 (902) 406-90-09" class="footer-link">📞 +7 (902) 406-90-09</a></li>
+            <li class="footer-link">⏰ Чертог открыт: 10:00 — 22:00</li>
+            <li><a href="/admin/promos" class="footer-link" style="color: var(--text-dim); font-size: 0.78rem;">🔐 Для сотрудников (Админка)</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2026 Крафтовая пивоварня «АРФА БРАГИ». Все права защищены. Чрезмерное употребление алкоголя вредит вашему здоровью (18+).</div>
+        <div>Скандинавская геймификация на Python / Flask</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="static/js/audio.js"></script>
+  <script src="static/js/main.js"></script>
+  
+</body>
+</html>

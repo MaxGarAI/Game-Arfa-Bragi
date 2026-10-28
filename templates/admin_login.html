@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Вход в Чертог Ярла — Панель пивоварни{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width: 440px;">
+    <div class="viking-card" style="text-align: center; border-color: var(--border-gold);">
+      <img src="{{ url_for('static', filename=logos.emblem) }}" alt="{{ brewery_name }}" style="max-height: 80px; margin-bottom: 1rem;">
+      <h2 class="font-viking text-gradient-gold" style="font-size: 1.5rem; margin-bottom: 0.5rem;">ЧЕРТОГ ЯРЛА</h2>
+      <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1.8rem;">
+        Вход в панель управления промокодами и скидками для сотрудников пивоварни.
+      </p>
+
+      <form method="POST" action="{{ url_for('admin_promos') }}">
+        <div style="margin-bottom: 1.5rem; text-align: left;">
+          <label style="display: block; font-size: 0.78rem; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.4rem; font-weight: 600;">
+            Пароль Ярла
+          </label>
+          <input type="password" name="admin_password" required placeholder="Введи секретный пароль..." 
+                 style="width: 100%; padding: 0.85rem 1rem; background: #080a0e; border: 1px solid var(--border-gold); border-radius: var(--radius-md); color: #fff; font-size: 1rem;">
+        </div>
+
+        <button type="submit" class="btn btn-gold" style="width: 100%;">
+          🔐 Войти в чертог
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

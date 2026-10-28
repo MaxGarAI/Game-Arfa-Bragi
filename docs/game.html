@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Игра «Арфа Браги» — Ритм-кликер крафтовой пивоварни</title>
+
+  <!-- SEO & Social Meta Tags -->
+  <meta name="description" content="«Арфа Браги» — веб-игра и чертог крафтового пива. Сыграй на арфе бога Браги, добывай медовуху и получай промокоды на авторское пиво и раков в Майкопе!">
+  <meta property="og:title" content="«АРФА БРАГИ» — Крафтовая пивоварня & Игра Скальдов">
+  <meta property="og:description" content="Сыграй на арфе Браги, соревнуйся в ритм-игре и получай скидки на крафтовое пиво!">
+  <meta property="og:image" content="static/logo/logo_gold.png">
+  <meta property="og:type" content="website">
+
+  <!-- Dynamic Favicon from logo files -->
+  <link rel="icon" type="image/png" href="static/logo/favicon.png">
+
+  <!-- Fonts & Styles -->
+  <link rel="stylesheet" href="static/css/style.css">
+  
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-link">
+        <img src="static/logo/emblem_gold.png" alt="АРФА БРАГИ" class="nav-emblem">
+        <div class="brand-text">
+          <span class="brand-title">АРФА БРАГИ</span>
+          <span class="brand-subtitle">Крафтовая пивоварня &amp; Чертог Раков</span>
+        </div>
+      </a>
+
+      <!-- Desktop & Mobile Navigation Links -->
+      <nav>
+        <ul class="nav-menu" id="navMenu">
+          <li><a href="index.html" class="nav-link ">Главная & Витрина</a></li>
+          <li><a href="game.html" class="nav-link active">🎮 Играть в Арфу</a></li>
+          <li><a href="rewards.html" class="nav-link ">🍯 Награды & Скидки</a></li>
+          <li><a href="leaderboard.html" class="nav-link ">🏆 Чертог лидеров</a></li>
+          <li><a href="https://arfabragi.ru" target="_blank" rel="noopener noreferrer" class="nav-link">🛒 Магазин пива ↗</a></li>
+        </ul>
+      </nav>
+
+      <!-- Right Action Bar: Mead Badge & Sound Toggle -->
+      <div class="nav-right">
+        <!-- Mead Balance Badge -->
+        <a href="rewards.html" class="header-mead-badge" title="Твоя медовуха для обмена на скидки">
+          <span class="header-mead-icon">🍯</span>
+          <span id="headerMeadCount">0</span>
+        </a>
+
+        <!-- Sound Toggle Button -->
+        <button id="btnToggleAudio" class="btn btn-outline btn-sm" aria-label="Звук" title="Включить / Выключить звук">
+          <span id="audioBtnIcon">🔊</span>
+        </button>
+
+        <!-- Mobile Burger Button -->
+        <button class="burger-btn" id="burgerBtn" aria-label="Открыть меню">
+          ☰
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  
+    
+  
+
+  <!-- Main Body Content -->
+  <main>
+    
+<div class="container">
+  <div class="game-layout">
+
+    <!-- Top In-Game HUD -->
+    <div class="game-header-bar">
+      <div class="game-hud-stat">
+        <span class="game-hud-label">Скальд</span>
+        <span class="game-hud-val player-name-display" id="btnEditName" style="cursor: pointer; font-size: 1rem; color: #fff;" title="Нажми, чтобы изменить имя">Скальд ✏️</span>
+      </div>
+
+      <div class="game-hud-stat">
+        <span class="game-hud-label">Очки Саги</span>
+        <span class="game-hud-val" id="gameHudScore">0</span>
+      </div>
+
+      <div class="game-hud-stat">
+        <span class="game-hud-label">Комбо</span>
+        <span class="game-hud-val" id="gameHudCombo" style="color: var(--gold-bright);">0x</span>
+      </div>
+
+      <div class="game-hud-stat">
+        <span class="game-hud-label">Время</span>
+        <span class="game-hud-val" id="gameHudTime">45с</span>
+      </div>
+
+      <div class="game-hud-stat">
+        <span class="game-hud-label">Медовуха</span>
+        <span class="game-hud-val" style="color: #ffd32a;"><span id="gameHudMead">0</span> 🍯</span>
+      </div>
+    </div>
+
+    <!-- Canvas Game Container -->
+    <div class="canvas-container">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- Splash Screen Overlay (before start) -->
+      <div class="modal-overlay active" id="gameSplashOverlay" style="position: absolute; border-radius: var(--radius-lg);">
+        <div style="text-align: center; max-width: 460px; padding: 1.5rem;">
+          <img src="static/logo/logo_gold.png" alt="АРФА БРАГИ" style="max-height: 70px; margin-bottom: 1rem;">
+          <h2 class="font-viking text-gradient-gold" style="font-size: 1.8rem; margin-bottom: 0.5rem;">АРФА БРАГИ</h2>
+          <p class="text-muted" style="font-size: 0.88rem; margin-bottom: 1.5rem;">
+            Тапай по летящим рунам на струнах арфы, когда они достигают нижней золотой линии. 
+            Удерживай непрерывное комбо для x10 множителя очков!
+          </p>
+
+          <div style="background: rgba(12, 14, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 1.5rem; font-size: 0.8rem; color: var(--gold-bright);">
+            📱 <strong>На телефоне:</strong> тапай одним пальцем по струнам или рунам<br>
+            💻 <strong>На ПК:</strong> клавиши <strong>D, F, J, K</strong> или <strong>1, 2, 3, 4</strong> (Пробел — замедление)
+          </div>
+
+          <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-gold btn-lg" id="btnStartGame">
+              ⚡ Начать сагу!
+            </button>
+            <button class="btn btn-outline" id="btnOpenUpgrades">
+              ✨ Прокачка
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Skill / Odin Blessing Control Bar -->
+    <div class="game-skill-bar">
+      <button class="odin-skill-btn" id="btnOdinSkill">
+        <span>⚡ Благословение Одина (Замедление 5с)</span>
+        <span class="odin-skill-count" id="odinSkillCount">1</span>
+      </button>
+
+      <button class="btn btn-outline btn-sm" id="btnOpenUpgrades" style="white-space: nowrap;">
+        ✨ Лавка Скальда
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Game Over / Victory Modal -->
+<div class="modal-overlay" id="gameResultModal">
+  <div class="modal-content" style="text-align: center; max-width: 520px;">
+    <img src="static/logo/emblem_gold.png" alt="АРФА БРАГИ" style="max-height: 75px; margin-bottom: 0.8rem;">
+    <h3 class="font-viking text-gradient-gold" style="font-size: 1.8rem; margin-bottom: 0.2rem;">САГА ЗАВЕРШЕНА!</h3>
+    <div id="resSkaldTitle" style="color: var(--gold-bright); font-weight: 700; margin-bottom: 1.5rem; font-size: 1.1rem;">Любимец Браги</div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.8rem;">
+      <div style="background: rgba(12, 14, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
+        <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Очки саги</div>
+        <div id="resScore" style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800; color: var(--gold-bright);">0</div>
+      </div>
+
+      <div style="background: rgba(12, 14, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
+        <div class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Заработано медовухи</div>
+        <div id="resMeadEarned" style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800; color: #ffd32a;">+0 🍯</div>
+      </div>
+
+      <div style="background: rgba(12, 14, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.8rem;">
+        <div class="text-muted" style="font-size: 0.72rem; text-transform: uppercase;">Макс. серия (Комбо)</div>
+        <div id="resMaxCombo" style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: #fff;">0x</div>
+      </div>
+
+      <div style="background: rgba(12, 14, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.8rem;">
+        <div class="text-muted" style="font-size: 0.72rem; text-transform: uppercase;">Попаданий по рунам</div>
+        <div id="resRunesHit" style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: #fff;">0</div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      <button class="btn btn-gold btn-lg" id="btnRestartGame">
+        🔄 Сыграть снова
+      </button>
+
+      <button class="btn btn-outline" id="btnShareScore">
+        📸 Поделиться сагой (Скачать карточку)
+      </button>
+
+      <a href="rewards.html" class="btn btn-outline" style="border-color: rgba(229, 169, 60, 0.3);">
+        🍯 Обменять медовуху на промокод
+      </a>
+    </div>
+  </div>
+</div>
+
+  </main>
+
+  <!-- Upgrades Drawer Modal (Accessible from anywhere) -->
+  <div class="modal-overlay" id="upgradesModal">
+    <div class="modal-content">
+      <button class="modal-close-btn modal-close-trigger">&times;</button>
+      <h3 class="font-viking text-gradient-gold" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Чертог улучшений скальда</h3>
+      <p class="text-muted" style="font-size: 0.88rem;">Прокачивай арфу Браги и снаряжение за заработанную медовуху 🍯</p>
+      
+      <div class="upgrades-list" id="upgradesDrawerList">
+        <!-- Rendered dynamically by main.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Promo Code Success Modal -->
+  <div class="modal-overlay" id="promoSuccessModal">
+    <div class="modal-content" style="text-align: center;">
+      <button class="modal-close-btn modal-close-trigger">&times;</button>
+      <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🎉</div>
+      <h3 class="font-viking text-gradient-gold" style="font-size: 1.6rem; margin-bottom: 0.5rem;">Промокод получен!</h3>
+      <p class="text-muted" id="promoModalTitle" style="margin-bottom: 1.5rem; font-size: 0.95rem;"></p>
+      
+      <div class="promo-code-pill" style="justify-content: center; margin-bottom: 1.5rem;">
+        <span class="promo-code-text" id="promoModalCode">BRAGI-XXXXX</span>
+      </div>
+
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-outline btn-copy-code" id="btnCopyPromoCode" data-code="">Скопировать код</button>
+        <a href="https://arfabragi.ru" target="_blank" rel="noopener noreferrer" class="btn btn-gold" id="promoModalShopBtn">Активировать в магазине ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Notifications Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Global Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="index.html" class="brand-link" style="margin-bottom: 0.8rem;">
+            <img src="static/logo/logo_gold.png" alt="АРФА БРАГИ" style="max-height: 52px; width: auto;">
+          </a>
+          <p class="footer-brand-desc">
+            Крафтовая пивоварня собственного производства «АРФА БРАГИ» и чертог свежих раков в Майкопе. Авторские эли, древние скандинавские традиции и геймификация для истинных ценителей крафта.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-heading">Навигация</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" class="footer-link">Витрина сортов</a></li>
+            <li><a href="game.html" class="footer-link">Игра «Арфа Браги»</a></li>
+            <li><a href="rewards.html" class="footer-link">Обмен медовухи</a></li>
+            <li><a href="leaderboard.html" class="footer-link">Таблица лидеров</a></li>
+            <li><a href="https://arfabragi.ru" target="_blank" rel="noopener noreferrer" class="footer-link">Интернет-магазин ↗</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-heading">Контакты чертога</h4>
+          <ul class="footer-links">
+            <li class="footer-link">📍 г. Майкоп, ул. Победа, 171</li>
+            <li><a href="tel:+7 (902) 406-90-09" class="footer-link">📞 +7 (902) 406-90-09</a></li>
+            <li class="footer-link">⏰ Чертог открыт: 10:00 — 22:00</li>
+            <li><a href="/admin/promos" class="footer-link" style="color: var(--text-dim); font-size: 0.78rem;">🔐 Для сотрудников (Админка)</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2026 Крафтовая пивоварня «АРФА БРАГИ». Все права защищены. Чрезмерное употребление алкоголя вредит вашему здоровью (18+).</div>
+        <div>Скандинавская геймификация на Python / Flask</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="static/js/audio.js"></script>
+  <script src="static/js/main.js"></script>
+  
+<script src="static/js/game.js"></script>
+
+</body>
+</html>

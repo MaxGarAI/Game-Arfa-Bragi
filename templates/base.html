@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}«АРФА БРАГИ» — Скандинавская веб-игра & Крафтовая пивоварня{% endblock %}</title>
+
+  <!-- SEO & Social Meta Tags -->
+  <meta name="description" content="«Арфа Браги» — веб-игра и чертог крафтового пива. Сыграй на арфе бога Браги, добывай медовуху и получай промокоды на авторское пиво и раков в Майкопе!">
+  <meta property="og:title" content="«АРФА БРАГИ» — Крафтовая пивоварня & Игра Скальдов">
+  <meta property="og:description" content="Сыграй на арфе Браги, соревнуйся в ритм-игре и получай скидки на крафтовое пиво!">
+  <meta property="og:image" content="{{ url_for('static', filename=logos.main_logo) }}">
+  <meta property="og:type" content="website">
+
+  <!-- Dynamic Favicon from logo files -->
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename=logos.favicon) }}">
+
+  <!-- Fonts & Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="{{ url_for('index') }}" class="brand-link">
+        <img src="{{ url_for('static', filename=logos.emblem) }}" alt="{{ brewery_name }}" class="nav-emblem">
+        <div class="brand-text">
+          <span class="brand-title">{{ brewery_name }}</span>
+          <span class="brand-subtitle">{{ brewery_tagline }}</span>
+        </div>
+      </a>
+
+      <!-- Desktop & Mobile Navigation Links -->
+      <nav>
+        <ul class="nav-menu" id="navMenu">
+          <li><a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Главная & Витрина</a></li>
+          <li><a href="{{ url_for('game') }}" class="nav-link {% if request.endpoint == 'game' %}active{% endif %}">🎮 Играть в Арфу</a></li>
+          <li><a href="{{ url_for('rewards') }}" class="nav-link {% if request.endpoint == 'rewards' %}active{% endif %}">🍯 Награды & Скидки</a></li>
+          <li><a href="{{ url_for('leaderboard') }}" class="nav-link {% if request.endpoint == 'leaderboard' %}active{% endif %}">🏆 Чертог лидеров</a></li>
+          <li><a href="{{ shop_url }}" target="_blank" rel="noopener noreferrer" class="nav-link">🛒 Магазин пива ↗</a></li>
+        </ul>
+      </nav>
+
+      <!-- Right Action Bar: Mead Badge & Sound Toggle -->
+      <div class="nav-right">
+        <!-- Mead Balance Badge -->
+        <a href="{{ url_for('rewards') }}" class="header-mead-badge" title="Твоя медовуха для обмена на скидки">
+          <span class="header-mead-icon">🍯</span>
+          <span id="headerMeadCount">0</span>
+        </a>
+
+        <!-- Sound Toggle Button -->
+        <button id="btnToggleAudio" class="btn btn-outline btn-sm" aria-label="Звук" title="Включить / Выключить звук">
+          <span id="audioBtnIcon">🔊</span>
+        </button>
+
+        <!-- Mobile Burger Button -->
+        <button class="burger-btn" id="burgerBtn" aria-label="Открыть меню">
+          ☰
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container" style="margin-top: 1rem;">
+        {% for category, msg in messages %}
+          <div class="toast" style="position: static; margin-bottom: 0.5rem; border-color: {% if category == 'error' %}var(--ruby-accent){% else %}var(--border-gold){% endif %};">
+            {{ msg }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Main Body Content -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Upgrades Drawer Modal (Accessible from anywhere) -->
+  <div class="modal-overlay" id="upgradesModal">
+    <div class="modal-content">
+      <button class="modal-close-btn modal-close-trigger">&times;</button>
+      <h3 class="font-viking text-gradient-gold" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Чертог улучшений скальда</h3>
+      <p class="text-muted" style="font-size: 0.88rem;">Прокачивай арфу Браги и снаряжение за заработанную медовуху 🍯</p>
+      
+      <div class="upgrades-list" id="upgradesDrawerList">
+        <!-- Rendered dynamically by main.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Promo Code Success Modal -->
+  <div class="modal-overlay" id="promoSuccessModal">
+    <div class="modal-content" style="text-align: center;">
+      <button class="modal-close-btn modal-close-trigger">&times;</button>
+      <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🎉</div>
+      <h3 class="font-viking text-gradient-gold" style="font-size: 1.6rem; margin-bottom: 0.5rem;">Промокод получен!</h3>
+      <p class="text-muted" id="promoModalTitle" style="margin-bottom: 1.5rem; font-size: 0.95rem;"></p>
+      
+      <div class="promo-code-pill" style="justify-content: center; margin-bottom: 1.5rem;">
+        <span class="promo-code-text" id="promoModalCode">BRAGI-XXXXX</span>
+      </div>
+
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-outline btn-copy-code" id="btnCopyPromoCode" data-code="">Скопировать код</button>
+        <a href="{{ shop_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-gold" id="promoModalShopBtn">Активировать в магазине ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Notifications Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Global Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="{{ url_for('index') }}" class="brand-link" style="margin-bottom: 0.8rem;">
+            <img src="{{ url_for('static', filename=logos.main_logo) }}" alt="{{ brewery_name }}" style="max-height: 52px; width: auto;">
+          </a>
+          <p class="footer-brand-desc">
+            Крафтовая пивоварня собственного производства «{{ brewery_name }}» и чертог свежих раков в Майкопе. Авторские эли, древние скандинавские традиции и геймификация для истинных ценителей крафта.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-heading">Навигация</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('index') }}" class="footer-link">Витрина сортов</a></li>
+            <li><a href="{{ url_for('game') }}" class="footer-link">Игра «Арфа Браги»</a></li>
+            <li><a href="{{ url_for('rewards') }}" class="footer-link">Обмен медовухи</a></li>
+            <li><a href="{{ url_for('leaderboard') }}" class="footer-link">Таблица лидеров</a></li>
+            <li><a href="{{ shop_url }}" target="_blank" rel="noopener noreferrer" class="footer-link">Интернет-магазин ↗</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-heading">Контакты чертога</h4>
+          <ul class="footer-links">
+            <li class="footer-link">📍 {{ brewery_city }}</li>
+            <li><a href="tel:{{ brewery_phone }}" class="footer-link">📞 {{ brewery_phone }}</a></li>
+            <li class="footer-link">⏰ Чертог открыт: 10:00 — 22:00</li>
+            <li><a href="{{ url_for('admin_promos') }}" class="footer-link" style="color: var(--text-dim); font-size: 0.78rem;">🔐 Для сотрудников (Админка)</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2026 Крафтовая пивоварня «{{ brewery_name }}». Все права защищены. Чрезмерное употребление алкоголя вредит вашему здоровью (18+).</div>
+        <div>Скандинавская геймификация на Python / Flask</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/audio.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts_extra %}{% endblock %}
+</body>
+</html>
