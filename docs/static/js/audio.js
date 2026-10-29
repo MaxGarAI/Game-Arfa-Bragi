@@ -42,8 +42,13 @@ class BragiAudioEngine {
   startBattleMusic() {
     if (this.isMuted) return;
     this.ensureContext();
+    this.stopAmbientDrone();
     if (this.bgMusic) {
-      this.bgMusic.currentTime = 0;
+      try {
+        if (this.bgMusic.readyState >= 1) {
+          this.bgMusic.currentTime = 0;
+        }
+      } catch (e) {}
       this.bgMusic.muted = this.isMuted;
       this.bgMusic.volume = 0.55;
       const playPromise = this.bgMusic.play();
@@ -62,7 +67,9 @@ class BragiAudioEngine {
     if (this.bgMusic) {
       try {
         this.bgMusic.pause();
-        this.bgMusic.currentTime = 0;
+        if (this.bgMusic.readyState >= 1) {
+          this.bgMusic.currentTime = 0;
+        }
       } catch (e) {}
     }
     this.stopAmbientDrone();
@@ -82,7 +89,7 @@ class BragiAudioEngine {
   ensureContext() {
     if (!this.ctx) this.init();
     if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().catch(() => {});
     }
   }
 
@@ -94,6 +101,9 @@ class BragiAudioEngine {
     }
     if (this.bgMusic) {
       this.bgMusic.muted = this.isMuted;
+      if (this.isMuted) {
+        try { this.bgMusic.pause(); } catch (e) {}
+      }
     }
     return this.isMuted;
   }
@@ -159,6 +169,17 @@ class BragiAudioEngine {
     osc1.stop(stopTime);
     osc2.stop(stopTime);
     pluckNoise.stop(now + 0.05);
+
+    setTimeout(() => {
+      try {
+        osc1.disconnect();
+        osc2.disconnect();
+        pluckNoise.disconnect();
+        pluckGain.disconnect();
+        filter.disconnect();
+        stringGain.disconnect();
+      } catch (e) {}
+    }, (isBonus ? 2400 : 1800));
   }
 
   /**

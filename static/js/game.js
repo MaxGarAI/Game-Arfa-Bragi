@@ -92,10 +92,8 @@ class BragiHarpGame {
     this.canvas.style.width = `${this.width}px`;
     this.canvas.style.height = `${this.height}px`;
 
-    if (this.ctx.resetTransform) {
-      this.ctx.resetTransform();
-    }
-    this.ctx.scale(dpr, dpr);
+    // Standard high-performance device pixel ratio scaling
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.laneWidth = this.width / this.lanesCount;
     this.hitLineY = this.height * 0.80;
   }
@@ -103,8 +101,17 @@ class BragiHarpGame {
   openGameModal() {
     const modal = document.getElementById('pureGameModal');
     if (!modal) return;
+    modal.style.display = 'flex';
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Show splash screen cleanly
+    const splash = document.getElementById('gameSplashOverlay');
+    if (splash) {
+      splash.style.display = 'flex';
+      splash.classList.add('active');
+    }
+
     window.bragiAudio.ensureContext();
     const splashVideo = document.getElementById('splashVideo');
     if (splashVideo) {
@@ -271,16 +278,25 @@ class BragiHarpGame {
     this.isPaused = false;
     this.lastFrameTime = performance.now();
 
-    // Hide splash & result modals
+    // Hide splash & result modals completely (display: none prevents any GPU compositing)
     const splash = document.getElementById('gameSplashOverlay');
-    if (splash) splash.classList.remove('active');
+    if (splash) {
+      splash.classList.remove('active');
+      splash.style.display = 'none';
+    }
     const resultModal = document.getElementById('gameResultModal');
-    if (resultModal) resultModal.classList.remove('active');
+    if (resultModal) {
+      resultModal.classList.remove('active');
+      resultModal.style.display = 'none';
+    }
 
-    // Pause splash video to save mobile GPU/CPU during 60fps canvas loop
+    // Stop splash video completely to free GPU and decoder memory
     const splashVideo = document.getElementById('splashVideo');
     if (splashVideo) {
-      try { splashVideo.pause(); } catch (e) {}
+      try {
+        splashVideo.pause();
+        if (splashVideo.readyState >= 1) splashVideo.currentTime = 0;
+      } catch (e) {}
     }
 
     // Start Viking battle music (war drums, horns, drone)
@@ -401,7 +417,7 @@ class BragiHarpGame {
           this.meadEarned += 10;
           window.bragiAudio.playSagaBonusFanfare();
           this.addFloatingText(this.width / 2, this.height * 0.38, '✨ САГА «АРФА БРАГИ»! +500 ✨', '#ffd700', 22);
-          this.emitParticles(this.width / 2, this.height * 0.38, '#ffd700', 40);
+          this.emitParticles(this.width / 2, this.height * 0.38, '#ffd700', 18);
         } else {
           this.addFloatingText(bestRune.x, bestRune.y - 35, `Сага: ${this.sagaProgress}/9 ᚱ`, '#ffd32a', 13);
         }
@@ -443,12 +459,12 @@ class BragiHarpGame {
       // Sound
       if (bestRune.isCask) {
         window.bragiAudio.playBeerCaskBurst();
-        this.addFloatingText(bestRune.x, bestRune.y - 20, 'ХМЕЛЬНОЙ ВЗРЫВ x2! 🍺', '#ffd700', 20);
-        this.emitParticles(bestRune.x, bestRune.y, '#ffd700', 35);
+        this.addFloatingText(bestRune.x, bestRune.y - 20, 'ХМЕЛЬНОЙ ВЗРЫВ x2! 🍺', '#ffd700', 18);
+        this.emitParticles(bestRune.x, bestRune.y, '#ffd700', 16);
       } else {
         window.bragiAudio.playHarpPluck(laneIndex, comboMultiplier >= 4);
-        this.addFloatingText(bestRune.x, bestRune.y - 10, `${ratingText} +${ptsEarned}`, color, 16);
-        this.emitParticles(bestRune.x, bestRune.y, color, 18);
+        this.addFloatingText(bestRune.x, bestRune.y - 10, `${ratingText} +${ptsEarned}`, color, 15);
+        this.emitParticles(bestRune.x, bestRune.y, color, 10);
       }
 
       this.updateHUD();
@@ -460,33 +476,41 @@ class BragiHarpGame {
 
   handleMiss(laneIndex = -1) {
     if (this.combo > 5) {
-      this.addFloatingText(this.width / 2, this.hitLineY - 30, 'КОМБО ПРЕРВАНО!', '#ff4757', 18);
+      this.addFloatingText(this.width / 2, this.hitLineY - 30, 'КОМБО ПРЕРВАНО!', '#ff4757', 16);
     }
     this.combo = 0;
     this.runesMissed++;
-    this.shakeIntensity = 8;
+    this.shakeIntensity = 6;
     window.bragiAudio.playMissSound();
     this.updateHUD();
   }
 
-  emitParticles(x, y, color, count = 16) {
-    for (let i = 0; i < count; i++) {
+  emitParticles(x, y, color, count = 10) {
+    // High-performance particle cap for silky 60fps mobile gameplay
+    if (this.particles.length > 30) {
+      this.particles.splice(0, this.particles.length - 20);
+    }
+    const maxCount = Math.min(count, 14);
+    for (let i = 0; i < maxCount; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 220 + 40;
+      const speed = Math.random() * 180 + 40;
       this.particles.push({
         x: x,
         y: y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         life: 1.0,
-        decay: Math.random() * 1.5 + 1.2,
-        size: Math.random() * 4 + 2,
+        decay: Math.random() * 1.8 + 1.4,
+        size: Math.random() * 3 + 2,
         color: color
       });
     }
   }
 
   addFloatingText(x, y, text, color, fontSize = 16) {
+    if (this.floatingTexts.length > 5) {
+      this.floatingTexts.shift();
+    }
     this.floatingTexts.push({
       x: x,
       y: y,
@@ -494,8 +518,8 @@ class BragiHarpGame {
       color: color,
       fontSize: fontSize,
       life: 1.0,
-      decay: 1.2,
-      vy: -60
+      decay: 1.4,
+      vy: -55
     });
   }
 
@@ -679,12 +703,10 @@ class BragiHarpGame {
   drawHitLine() {
     const y = this.hitLineY;
 
-    // Glowing target baseline
+    // Crisp gold target baseline
     this.ctx.save();
-    this.ctx.strokeStyle = 'rgba(229, 169, 60, 0.65)';
-    this.ctx.lineWidth = 3;
-    this.ctx.shadowColor = '#e5a93c';
-    this.ctx.shadowBlur = 12;
+    this.ctx.strokeStyle = '#e5a93c';
+    this.ctx.lineWidth = 2.5;
 
     this.ctx.beginPath();
     this.ctx.moveTo(0, y);
@@ -719,8 +741,6 @@ class BragiHarpGame {
         this.ctx.fill();
         this.ctx.strokeStyle = '#ffd87d';
         this.ctx.lineWidth = 3;
-        this.ctx.shadowColor = '#ffd87d';
-        this.ctx.shadowBlur = 15;
         this.ctx.stroke();
 
         // Draw beer emoji or brewery symbol
@@ -734,10 +754,8 @@ class BragiHarpGame {
         this.ctx.arc(0, 0, r.radius, 0, Math.PI * 2);
         this.ctx.fillStyle = '#181d26';
         this.ctx.fill();
-        this.ctx.strokeStyle = 'rgba(229, 169, 60, 0.7)';
+        this.ctx.strokeStyle = '#e5a93c';
         this.ctx.lineWidth = 2;
-        this.ctx.shadowColor = 'rgba(229, 169, 60, 0.35)';
-        this.ctx.shadowBlur = 8;
         this.ctx.stroke();
 
         // Draw crisp sacred rune glyph from user's handwritten picture
@@ -757,8 +775,6 @@ class BragiHarpGame {
     this.ctx.lineJoin = 'miter';
     this.ctx.lineWidth = 3.2;
     this.ctx.strokeStyle = '#ffd87d';
-    this.ctx.shadowColor = '#e5a93c';
-    this.ctx.shadowBlur = 10;
 
     switch (char) {
       case 'ᛁ': // Isa (I) - single vertical stroke
@@ -843,7 +859,7 @@ class BragiHarpGame {
     const step = totalWidth / (sagaDisplay.length - 1);
     const y = 20;
 
-    this.ctx.font = '600 13px "Cinzel Decorative", sans-serif';
+    this.ctx.font = '700 13px "Cinzel Decorative", sans-serif';
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
 
@@ -852,26 +868,20 @@ class BragiHarpGame {
 
       if (item.seqIdx === -1) {
         // Dot separator
-        this.ctx.fillStyle = 'rgba(229, 169, 60, 0.4)';
-        this.ctx.shadowBlur = 0;
+        this.ctx.fillStyle = 'rgba(229, 169, 60, 0.45)';
         this.ctx.fillText('•', x, y);
       } else if (item.seqIdx < this.sagaProgress) {
-        // Collected rune: brilliant gold with glow
+        // Collected rune: brilliant gold
         this.ctx.fillStyle = '#ffd700';
-        this.ctx.shadowColor = '#ffd700';
-        this.ctx.shadowBlur = 8;
         this.ctx.fillText(item.char, x, y);
       } else if (item.seqIdx === this.sagaProgress) {
         // Next target rune: pulsing gold
         const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.008);
         this.ctx.fillStyle = pulse > 0.5 ? '#ffeaa7' : '#fdcb6e';
-        this.ctx.shadowColor = '#e5a93c';
-        this.ctx.shadowBlur = 12 * pulse;
         this.ctx.fillText(item.char, x, y);
       } else {
         // Uncollected rune: dimmed
         this.ctx.fillStyle = 'rgba(229, 169, 60, 0.28)';
-        this.ctx.shadowBlur = 0;
         this.ctx.fillText(item.char, x, y);
       }
     });
@@ -884,8 +894,6 @@ class BragiHarpGame {
       this.ctx.save();
       this.ctx.globalAlpha = Math.max(0, p.life);
       this.ctx.fillStyle = p.color;
-      this.ctx.shadowColor = p.color;
-      this.ctx.shadowBlur = 8;
       this.ctx.beginPath();
       this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       this.ctx.fill();
@@ -900,8 +908,6 @@ class BragiHarpGame {
       this.ctx.fillStyle = ft.color;
       this.ctx.font = `800 ${ft.fontSize}px Unbounded, sans-serif`;
       this.ctx.textAlign = 'center';
-      this.ctx.shadowColor = ft.color;
-      this.ctx.shadowBlur = 10;
       this.ctx.fillText(ft.text, ft.x, ft.y);
       this.ctx.restore();
     }
@@ -913,8 +919,6 @@ class BragiHarpGame {
     this.ctx.fillRect(0, 0, this.width, 4);
 
     this.ctx.fillStyle = progress < 0.2 ? '#ff4757' : '#e5a93c';
-    this.ctx.shadowColor = this.ctx.fillStyle;
-    this.ctx.shadowBlur = 6;
     this.ctx.fillRect(0, 0, this.width * progress, 4);
   }
 
@@ -1019,6 +1023,7 @@ class BragiHarpGame {
     document.getElementById('resMeadEarned').textContent = `+${data.mead_earned || 0} 🍯`;
     document.getElementById('resSkaldTitle').textContent = this.getSkaldTitle(this.score);
 
+    modal.style.display = 'flex';
     modal.classList.add('active');
 
     // Bind share card generation button
