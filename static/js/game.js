@@ -323,14 +323,6 @@ class BragiHarpGame {
     this.currentSpeed = this.baseSpeed;
     this.updateHUD();
   }
-    this.particles = [];
-    this.floatingTexts = [];
-    this.stringVibrations = [0, 0, 0, 0];
-    this.isOdinActive = false;
-    this.odinTimer = 0;
-    this.currentSpeed = this.baseSpeed;
-    this.updateHUD();
-  }
 
   activateOdinBlessing() {
     if (this.odinBlessings <= 0 || this.isOdinActive || !this.isRunning) return;

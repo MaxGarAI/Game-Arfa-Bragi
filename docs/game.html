@@ -79,7 +79,7 @@
     <p class="text-muted" style="margin-bottom: 2rem;">
       Если чертог игры не открылся на весь экран автоматически, нажми кнопку ниже:
     </p>
-    <button class="btn btn-gold btn-lg btn-open-game-window" style="width: 100%;">
+    <button class="btn btn-gold btn-lg btn-open-game-window" onclick="if(window.bragiGame){window.bragiGame.openGameModal();}else{location.reload();}" style="width: 100%;">
       ⚡ Открыть чертог игры
     </button>
   </div>
