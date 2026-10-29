@@ -31,8 +31,11 @@ class BragiHarpGame {
     this.laneKeyCodes = ['KeyD', 'KeyF', 'KeyJ', 'KeyK'];
     this.laneNumCodes = ['Digit1', 'Digit2', 'Digit3', 'Digit4'];
 
-    // Runes configuration
-    this.elderFuthark = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᛗ', 'ᛋ', 'ᛏ', 'ᛒ'];
+    // Sacred Norse Runes from the user's handwritten picture: ᚨ, ᚱ, ᚠ, ᛒ, ᚷ, ᛁ (ARFA BRAGI)
+    this.sacredRunes = ['ᚨ', 'ᚱ', 'ᚠ', 'ᛒ', 'ᚷ', 'ᛁ'];
+    this.sagaSequence = ['ᚨ', 'ᚱ', 'ᚠ', 'ᚨ', 'ᛒ', 'ᚱ', 'ᚨ', 'ᚷ', 'ᛁ'];
+    this.sagaProgress = 0;
+
     this.activeRunes = [];
     this.particles = [];
     this.floatingTexts = [];
@@ -103,6 +106,10 @@ class BragiHarpGame {
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
     window.bragiAudio.ensureContext();
+    const splashVideo = document.getElementById('splashVideo');
+    if (splashVideo) {
+      splashVideo.play().catch(() => {});
+    }
     this.initCanvasSize();
     setTimeout(() => this.initCanvasSize(), 60);
     setTimeout(() => this.initCanvasSize(), 220);
@@ -115,7 +122,11 @@ class BragiHarpGame {
     document.body.style.overflow = '';
     if (this.isRunning) {
       this.isRunning = false;
-      window.bragiAudio.stopAmbientDrone();
+    }
+    window.bragiAudio.stopBattleMusic();
+    const splashVideo = document.getElementById('splashVideo');
+    if (splashVideo) {
+      try { splashVideo.pause(); } catch (e) {}
     }
     if (window.location.pathname.endsWith('/game') || window.location.pathname.endsWith('game.html')) {
       window.location.href = window.location.pathname.includes('.html') ? 'index.html' : '/';
@@ -266,8 +277,15 @@ class BragiHarpGame {
     const resultModal = document.getElementById('gameResultModal');
     if (resultModal) resultModal.classList.remove('active');
 
+    // Pause splash video to save mobile GPU/CPU during 60fps canvas loop
+    const splashVideo = document.getElementById('splashVideo');
+    if (splashVideo) {
+      try { splashVideo.pause(); } catch (e) {}
+    }
+
+    // Start Viking battle music (war drums, horns, drone)
     window.bragiAudio.ensureContext();
-    window.bragiAudio.startAmbientDrone();
+    window.bragiAudio.startBattleMusic();
 
     requestAnimationFrame((t) => this.gameLoop(t));
   }
@@ -279,7 +297,16 @@ class BragiHarpGame {
     this.maxCombo = 0;
     this.runesHit = 0;
     this.runesMissed = 0;
+    this.sagaProgress = 0; // Reset saga sequence progress
     this.activeRunes = [];
+    this.particles = [];
+    this.floatingTexts = [];
+    this.stringVibrations = [0, 0, 0, 0];
+    this.isOdinActive = false;
+    this.odinTimer = 0;
+    this.currentSpeed = this.baseSpeed;
+    this.updateHUD();
+  }
     this.particles = [];
     this.floatingTexts = [];
     this.stringVibrations = [0, 0, 0, 0];
@@ -312,7 +339,19 @@ class BragiHarpGame {
     const lane = Math.floor(Math.random() * this.lanesCount);
     const isSpecialCask = Math.random() < 0.12; // 12% chance for golden brewery cask
 
-    const runeChar = isSpecialCask ? '🍺' : this.elderFuthark[Math.floor(Math.random() * this.elderFuthark.length)];
+    let runeChar;
+    if (isSpecialCask) {
+      runeChar = '🍺';
+    } else {
+      // 40% bias toward the next rune needed in the "ARFA BRAGI" saga
+      const targetRune = this.sagaSequence[this.sagaProgress];
+      if (targetRune && Math.random() < 0.40) {
+        runeChar = targetRune;
+      } else {
+        runeChar = this.sacredRunes[Math.floor(Math.random() * this.sacredRunes.length)];
+      }
+    }
+
     const x = lane * this.laneWidth + this.laneWidth / 2;
 
     this.activeRunes.push({
@@ -321,8 +360,8 @@ class BragiHarpGame {
       x: x,
       y: -30,
       isCask: isSpecialCask,
-      radius: isSpecialCask ? 28 : 24,
-      rotation: (Math.random() - 0.5) * 0.2,
+      radius: isSpecialCask ? 28 : 25,
+      rotation: (Math.random() - 0.5) * 0.15,
       hit: false
     });
   }
@@ -350,6 +389,23 @@ class BragiHarpGame {
       this.runesHit++;
       this.combo++;
       if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+
+      // Check if this rune advances the sacred saga "АРФА БРАГИ"
+      if (!bestRune.isCask && bestRune.char === this.sagaSequence[this.sagaProgress]) {
+        this.sagaProgress++;
+        if (this.sagaProgress >= this.sagaSequence.length) {
+          // Completed the full saga word «АРФА БРАГИ»!
+          this.sagaProgress = 0;
+          const sagaBonusPts = 500;
+          this.score += sagaBonusPts;
+          this.meadEarned += 10;
+          window.bragiAudio.playSagaBonusFanfare();
+          this.addFloatingText(this.width / 2, this.height * 0.38, '✨ САГА «АРФА БРАГИ»! +500 ✨', '#ffd700', 22);
+          this.emitParticles(this.width / 2, this.height * 0.38, '#ffd700', 40);
+        } else {
+          this.addFloatingText(bestRune.x, bestRune.y - 35, `Сага: ${this.sagaProgress}/9 ᚱ`, '#ffd32a', 13);
+        }
+      }
 
       // Calculate rating
       let ratingText = 'ХОРОШО!';
@@ -584,6 +640,9 @@ class BragiHarpGame {
     // Top Progress Bar
     this.drawProgressBar();
 
+    // Sacred Saga Runes Progress Banner (spelling "АРФА БРАГИ")
+    this.drawSagaBar();
+
     this.ctx.restore();
   }
 
@@ -681,16 +740,143 @@ class BragiHarpGame {
         this.ctx.shadowBlur = 8;
         this.ctx.stroke();
 
-        // Glowing Rune Glyph
-        this.ctx.fillStyle = '#ffc453';
-        this.ctx.font = '700 22px "Cinzel Decorative", serif';
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(r.char, 0, 0);
+        // Draw crisp sacred rune glyph from user's handwritten picture
+        this.drawSacredRuneGlyph(r.char, r.radius);
       }
 
       this.ctx.restore();
     }
+  }
+
+  drawSacredRuneGlyph(char, radius) {
+    const h = radius * 0.58;
+    const w = radius * 0.55;
+
+    this.ctx.beginPath();
+    this.ctx.lineCap = 'round';
+    this.ctx.lineJoin = 'miter';
+    this.ctx.lineWidth = 3.2;
+    this.ctx.strokeStyle = '#ffd87d';
+    this.ctx.shadowColor = '#e5a93c';
+    this.ctx.shadowBlur = 10;
+
+    switch (char) {
+      case 'ᛁ': // Isa (I) - single vertical stroke
+        this.ctx.moveTo(0, -h);
+        this.ctx.lineTo(0, h);
+        break;
+
+      case 'ᚷ': // Gebo (G) - X cross
+        this.ctx.moveTo(-w * 0.7, -h);
+        this.ctx.lineTo(w * 0.7, h);
+        this.ctx.moveTo(-w * 0.7, h);
+        this.ctx.lineTo(w * 0.7, -h);
+        break;
+
+      case 'ᚨ': // Ansuz (A) - vertical stem + two downward right branches
+        this.ctx.moveTo(-w * 0.35, -h);
+        this.ctx.lineTo(-w * 0.35, h);
+        this.ctx.moveTo(-w * 0.35, -h * 0.5);
+        this.ctx.lineTo(w * 0.5, -h * 0.05);
+        this.ctx.moveTo(-w * 0.35, 0);
+        this.ctx.lineTo(w * 0.5, h * 0.45);
+        break;
+
+      case 'ᚠ': // Fehu (F) - vertical stem + two upward right branches
+        this.ctx.moveTo(-w * 0.35, -h);
+        this.ctx.lineTo(-w * 0.35, h);
+        this.ctx.moveTo(-w * 0.35, -h * 0.1);
+        this.ctx.lineTo(w * 0.5, -h * 0.65);
+        this.ctx.moveTo(-w * 0.35, h * 0.38);
+        this.ctx.lineTo(w * 0.5, -h * 0.18);
+        break;
+
+      case 'ᚱ': // Raido (R) - vertical stem + top triangle + lower diagonal leg
+        this.ctx.moveTo(-w * 0.35, -h);
+        this.ctx.lineTo(-w * 0.35, h);
+        this.ctx.moveTo(-w * 0.35, -h);
+        this.ctx.lineTo(w * 0.45, -h * 0.5);
+        this.ctx.lineTo(-w * 0.35, 0);
+        this.ctx.moveTo(-w * 0.35, 0);
+        this.ctx.lineTo(w * 0.45, h);
+        break;
+
+      case 'ᛒ': // Berkano (B) - vertical stem + two right pointed lobes
+        this.ctx.moveTo(-w * 0.35, -h);
+        this.ctx.lineTo(-w * 0.35, h);
+        this.ctx.moveTo(-w * 0.35, -h);
+        this.ctx.lineTo(w * 0.42, -h * 0.5);
+        this.ctx.lineTo(-w * 0.35, 0);
+        this.ctx.lineTo(w * 0.42, h * 0.5);
+        this.ctx.lineTo(-w * 0.35, h);
+        break;
+
+      default:
+        // Text fallback if any other character
+        this.ctx.fillStyle = '#ffc453';
+        this.ctx.font = '700 22px "Cinzel Decorative", serif';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(char, 0, 0);
+        return;
+    }
+    this.ctx.stroke();
+  }
+
+  drawSagaBar() {
+    this.ctx.save();
+    const sagaDisplay = [
+      { char: 'ᚨ', seqIdx: 0 },
+      { char: 'ᚱ', seqIdx: 1 },
+      { char: 'ᚠ', seqIdx: 2 },
+      { char: 'ᚨ', seqIdx: 3 },
+      { char: '•', seqIdx: -1 },
+      { char: 'ᛒ', seqIdx: 4 },
+      { char: 'ᚱ', seqIdx: 5 },
+      { char: 'ᚨ', seqIdx: 6 },
+      { char: 'ᚷ', seqIdx: 7 },
+      { char: 'ᛁ', seqIdx: 8 }
+    ];
+
+    const totalWidth = Math.min(this.width * 0.9, 280);
+    const startX = (this.width - totalWidth) / 2;
+    const step = totalWidth / (sagaDisplay.length - 1);
+    const y = 20;
+
+    this.ctx.font = '600 13px "Cinzel Decorative", sans-serif';
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+
+    sagaDisplay.forEach((item, i) => {
+      const x = startX + i * step;
+
+      if (item.seqIdx === -1) {
+        // Dot separator
+        this.ctx.fillStyle = 'rgba(229, 169, 60, 0.4)';
+        this.ctx.shadowBlur = 0;
+        this.ctx.fillText('•', x, y);
+      } else if (item.seqIdx < this.sagaProgress) {
+        // Collected rune: brilliant gold with glow
+        this.ctx.fillStyle = '#ffd700';
+        this.ctx.shadowColor = '#ffd700';
+        this.ctx.shadowBlur = 8;
+        this.ctx.fillText(item.char, x, y);
+      } else if (item.seqIdx === this.sagaProgress) {
+        // Next target rune: pulsing gold
+        const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.008);
+        this.ctx.fillStyle = pulse > 0.5 ? '#ffeaa7' : '#fdcb6e';
+        this.ctx.shadowColor = '#e5a93c';
+        this.ctx.shadowBlur = 12 * pulse;
+        this.ctx.fillText(item.char, x, y);
+      } else {
+        // Uncollected rune: dimmed
+        this.ctx.fillStyle = 'rgba(229, 169, 60, 0.28)';
+        this.ctx.shadowBlur = 0;
+        this.ctx.fillText(item.char, x, y);
+      }
+    });
+
+    this.ctx.restore();
   }
 
   drawParticles() {
@@ -753,7 +939,12 @@ class BragiHarpGame {
 
   async endGame() {
     this.isRunning = false;
-    window.bragiAudio.stopAmbientDrone();
+    window.bragiAudio.stopBattleMusic();
+
+    const splashVideo = document.getElementById('splashVideo');
+    if (splashVideo) {
+      try { splashVideo.play().catch(() => {}); } catch (e) {}
+    }
 
     // Accuracy
     const totalTaps = this.runesHit + this.runesMissed;
@@ -866,13 +1057,13 @@ class BragiHarpGame {
     sctx.lineWidth = 2;
     sctx.strokeRect(55, 55, 970, 970);
 
-    // Corner Runes
+    // Corner Sacred Runes from user's handwritten picture
     sctx.fillStyle = '#ffc453';
     sctx.font = '700 36px "Cinzel Decorative", serif';
-    sctx.fillText('ᚠ', 75, 95);
-    sctx.fillText('ᚲ', 975, 95);
-    sctx.fillText('ᛗ', 75, 995);
-    sctx.fillText('ᛋ', 975, 995);
+    sctx.fillText('ᚨ', 75, 95);
+    sctx.fillText('ᚱ', 975, 95);
+    sctx.fillText('ᛒ', 75, 995);
+    sctx.fillText('ᛁ', 975, 995);
 
     // 3. Draw Brewery Emblem
     if (this.emblemImg.complete && this.emblemImg.naturalWidth > 0) {

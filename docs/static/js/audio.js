@@ -14,6 +14,10 @@ class BragiAudioEngine {
     this.droneFilter = null;
     this.isDronePlaying = false;
     
+    // Background Viking war music track (war drums, bukkehorn, and drone)
+    this.bgMusic = null;
+    this.initBgMusic();
+
     // Celtic / Nordic pentatonic harp frequencies for strings 1..5
     this.harpFrequencies = [
       146.83, // String 1: D3 (Deep Root)
@@ -22,6 +26,46 @@ class BragiAudioEngine {
       261.63, // String 4: C4 (Seventh)
       293.66  // String 5: D4 (High Octave / Golden Cask)
     ];
+  }
+
+  initBgMusic() {
+    try {
+      this.bgMusic = new Audio('static/audio/viking_battle.mp3');
+      this.bgMusic.loop = true;
+      this.bgMusic.volume = 0.55;
+      this.bgMusic.muted = this.isMuted;
+    } catch (e) {
+      console.warn('Background music init error:', e);
+    }
+  }
+
+  startBattleMusic() {
+    if (this.isMuted) return;
+    this.ensureContext();
+    if (this.bgMusic) {
+      this.bgMusic.currentTime = 0;
+      this.bgMusic.muted = this.isMuted;
+      this.bgMusic.volume = 0.55;
+      const playPromise = this.bgMusic.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Fallback to ambient procedural drone if browser blocks unprompted audio
+          this.startAmbientDrone();
+        });
+      }
+    } else {
+      this.startAmbientDrone();
+    }
+  }
+
+  stopBattleMusic() {
+    if (this.bgMusic) {
+      try {
+        this.bgMusic.pause();
+        this.bgMusic.currentTime = 0;
+      } catch (e) {}
+    }
+    this.stopAmbientDrone();
   }
 
   init() {
@@ -47,6 +91,9 @@ class BragiAudioEngine {
     localStorage.setItem('bragi_audio_muted', this.isMuted);
     if (this.masterGain && this.ctx) {
       this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.7, this.ctx.currentTime);
+    }
+    if (this.bgMusic) {
+      this.bgMusic.muted = this.isMuted;
     }
     return this.isMuted;
   }
@@ -112,6 +159,52 @@ class BragiAudioEngine {
     osc1.stop(stopTime);
     osc2.stop(stopTime);
     pluckNoise.stop(now + 0.05);
+  }
+
+  /**
+   * Special triumphant fanfare when the player spells out "ARFA BRAGI" (АРФА БРАГИ)
+   */
+  playSagaBonusFanfare() {
+    if (this.isMuted) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+
+    // Majestic rising 5-note brass fanfare
+    const notes = [146.83, 220.00, 293.66, 369.99, 440.00];
+    notes.forEach((freq, idx) => {
+      setTimeout(() => {
+        if (!this.ctx || this.isMuted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, now);
+
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(freq * 1.005, now);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1800, now);
+        filter.frequency.exponentialRampToValueAtTime(450, now + 1.2);
+
+        gain.gain.setValueAtTime(0.01, now);
+        gain.gain.linearRampToValueAtTime(0.5, now + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+
+        osc.connect(filter);
+        osc2.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.start(now);
+        osc2.start(now);
+        osc.stop(now + 1.6);
+        osc2.stop(now + 1.6);
+      }, idx * 110);
+    });
   }
 
   /**
