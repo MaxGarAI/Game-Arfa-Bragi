@@ -115,7 +115,12 @@ class BragiHarpGame {
     window.bragiAudio.ensureContext();
     const splashVideo = document.getElementById('splashVideo');
     if (splashVideo) {
-      splashVideo.play().catch(() => {});
+      splashVideo.muted = true;
+      splashVideo.defaultMuted = true;
+      splashVideo.setAttribute('playsinline', '');
+      splashVideo.setAttribute('webkit-playsinline', '');
+      const p = splashVideo.play();
+      if (p !== undefined) p.catch(() => {});
     }
     this.initCanvasSize();
     setTimeout(() => this.initCanvasSize(), 60);
@@ -126,6 +131,7 @@ class BragiHarpGame {
     const modal = document.getElementById('pureGameModal');
     if (!modal) return;
     modal.classList.remove('active');
+    modal.style.display = 'none';
     document.body.style.overflow = '';
     if (this.isRunning) {
       this.isRunning = false;
@@ -146,21 +152,42 @@ class BragiHarpGame {
       localStorage.setItem('bragi_player_uuid', this.playerUuid);
     }
 
-    try {
-      const res = await fetch(`/api/me?uuid=${this.playerUuid}`);
-      const data = await res.json();
-      if (data && data.player) {
-        const p = data.player;
-        this.playerName = p.name;
+    const isStatic = window.location.hostname.endsWith('github.io') || window.location.protocol === 'file:';
+    if (!isStatic) {
+      try {
+        const res = await fetch(`/api/me?uuid=${this.playerUuid}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.player) {
+            const p = data.player;
+            this.playerName = p.name;
+            this.harpLevel = p.harp_strings_lvl || 0;
+            this.hornLevel = p.horn_lvl || 0;
+            this.odinBlessings = p.odin_blessings || 0;
+            this.breweryBuffGames = p.brewery_buff_games || 0;
+            this.updateHeaderMead(p.mead);
+            this.updateOdinButtonUI();
+            return;
+          }
+        }
+      } catch (e) {
+        // Fall through to local profile
+      }
+    }
+
+    // Local profile fallback
+    const localData = localStorage.getItem('bragi_local_player');
+    if (localData) {
+      try {
+        const p = JSON.parse(localData);
+        this.playerName = p.name || 'Скальд';
         this.harpLevel = p.harp_strings_lvl || 0;
         this.hornLevel = p.horn_lvl || 0;
-        this.odinBlessings = p.odin_blessings || 0;
+        this.odinBlessings = p.odin_blessings !== undefined ? p.odin_blessings : 1;
         this.breweryBuffGames = p.brewery_buff_games || 0;
-        this.updateHeaderMead(p.mead);
+        this.updateHeaderMead(p.mead || 0);
         this.updateOdinButtonUI();
-      }
-    } catch (e) {
-      console.warn('Profile fetch fallback:', e);
+      } catch (e) {}
     }
   }
 
@@ -211,8 +238,11 @@ class BragiHarpGame {
     const upgradesModal = document.getElementById('upgradesModal');
     [openUpgSplash, openUpgPure].forEach(btn => {
       if (btn && upgradesModal) {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
           if (window.bragiApp) window.bragiApp.renderUpgradesDrawer();
+          upgradesModal.style.display = 'flex';
           upgradesModal.classList.add('active');
         });
       }

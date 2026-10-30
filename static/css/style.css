@@ -432,13 +432,14 @@ h1, h2, h3, h4, h5, h6 {
   max-width: 380px;
   width: 90%;
   height: auto;
-  filter: drop-shadow(0 8px 24px rgba(229, 169, 60, 0.4));
+  filter: drop-shadow(0 8px 24px rgba(229, 169, 60, 0.45));
+  will-change: transform;
   animation: logoBreath 4s ease-in-out infinite alternate;
 }
 
 @keyframes logoBreath {
-  0% { transform: scale(1); filter: drop-shadow(0 6px 18px rgba(229, 169, 60, 0.35)); }
-  100% { transform: scale(1.02); filter: drop-shadow(0 10px 30px rgba(229, 169, 60, 0.6)); }
+  0% { transform: scale(1); }
+  100% { transform: scale(1.025); }
 }
 
 .hero-title {
@@ -1002,17 +1003,18 @@ h1, h2, h3, h4, h5, h6 {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 200;
-  background: rgba(4, 5, 8, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  z-index: 1050;
+  background: rgba(5, 7, 11, 0.92);
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 1.25rem;
+  padding: 1rem;
   opacity: 0;
   visibility: hidden;
-  transition: var(--transition);
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .modal-overlay.active {
@@ -1027,17 +1029,24 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--radius-lg);
   max-width: 600px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 85vh;
   overflow-y: auto;
-  padding: 2.2rem;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+  padding: 1.5rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), var(--shadow-gold);
   position: relative;
-  transform: scale(0.92);
-  transition: var(--transition);
+  transform: scale(0.96);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-overlay.active .modal-content {
   transform: scale(1);
+}
+
+#upgradesModal, #promoSuccessModal {
+  z-index: 1050 !important;
 }
 
 .modal-close-btn {
@@ -1447,6 +1456,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Splash Video & Menu Styles */
+#gameSplashOverlay {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  overscroll-behavior-y: contain !important;
+}
+
 .splash-video-box {
   position: absolute;
   inset: 0;
@@ -1454,6 +1470,7 @@ h1, h2, h3, h4, h5, h6 {
   height: 100%;
   overflow: hidden;
   z-index: 0;
+  pointer-events: none;
 }
 
 #splashVideo {
@@ -1476,10 +1493,47 @@ h1, h2, h3, h4, h5, h6 {
   z-index: 2;
   text-align: center;
   max-width: 440px;
+  margin: auto;
   padding: 1.1rem 1.25rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+@media (max-height: 720px) {
+  .splash-content-inner {
+    padding: 0.5rem 0.75rem;
+  }
+  .splash-logo-img {
+    max-height: 40px !important;
+    margin-bottom: 0.2rem !important;
+  }
+  .splash-title {
+    font-size: 1.3rem !important;
+    margin-bottom: 0.15rem !important;
+  }
+  .splash-sacred-runes {
+    font-size: 1.1rem !important;
+    margin-bottom: 0.35rem !important;
+    gap: 0.4rem !important;
+  }
+  .splash-desc {
+    font-size: 0.72rem !important;
+    margin-bottom: 0.45rem !important;
+    line-height: 1.3 !important;
+  }
+  .splash-controls-hint {
+    padding: 0.35rem 0.55rem !important;
+    font-size: 0.68rem !important;
+    margin-bottom: 0.6rem !important;
+  }
+  .splash-actions {
+    gap: 0.5rem !important;
+  }
+  .splash-actions .btn-lg {
+    padding: 0.65rem 1.2rem !important;
+    font-size: 0.88rem !important;
+  }
 }
 
 .splash-logo-img {

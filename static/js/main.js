@@ -25,7 +25,17 @@ class BragiApp {
     this.updateAudioButtonState();
   }
 
+  get isStaticMode() {
+    return window.location.hostname.endsWith('github.io') || window.location.protocol === 'file:';
+  }
+
   async fetchPlayerProfile() {
+    if (this.isStaticMode) {
+      this.initLocalPlayerProfile();
+      this.renderPlayerUI();
+      return;
+    }
+
     try {
       const res = await fetch(`/api/me?uuid=${this.uuid}`);
       if (res.ok) {
@@ -234,33 +244,35 @@ class BragiApp {
   }
 
   async purchaseUpgrade(upgradeId) {
-    try {
-      const res = await fetch('/api/me/upgrade', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uuid: this.uuid, upgrade_id: upgradeId })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.success) {
-          this.showToast(`✨ ${data.message}`);
-          this.player = data.player;
-          this.saveLocalPlayerProfile();
-          this.renderPlayerUI();
-          if (window.bragiGame) {
-            window.bragiGame.loadPlayerProfile();
+    if (!this.isStaticMode) {
+      try {
+        const res = await fetch('/api/me/upgrade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uuid: this.uuid, upgrade_id: upgradeId })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success) {
+            this.showToast(`✨ ${data.message}`);
+            this.player = data.player;
+            this.saveLocalPlayerProfile();
+            this.renderPlayerUI();
+            if (window.bragiGame) {
+              window.bragiGame.loadPlayerProfile();
+            }
+            return;
+          } else if (data && data.message) {
+            this.showToast(`⚠️ ${data.message}`);
+            return;
           }
-          return;
-        } else if (data && data.message) {
-          this.showToast(`⚠️ ${data.message}`);
-          return;
         }
+      } catch (e) {
+        // Fall through to local simulation
       }
-    } catch (e) {
-      // Fall through to local simulation
     }
 
-    // Local upgrade purchase
+    // Local upgrade purchase (instant, zero network latency)
     const catalog = this.player.upgrades_catalog || {};
     const item = catalog[upgradeId];
     if (!item) return;
@@ -290,29 +302,31 @@ class BragiApp {
   }
 
   async claimDaily() {
-    try {
-      const res = await fetch('/api/me/claim-daily', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uuid: this.uuid })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.success) {
-          this.showToast(`🍯 Получено +${data.reward_amount} медовухи за ежедневный визит!`);
-          this.player.mead = data.new_mead_balance;
-          this.player.streak_days = data.streak_days;
-          this.player.can_claim_daily = false;
-          this.saveLocalPlayerProfile();
-          this.renderPlayerUI();
-          return;
+    if (!this.isStaticMode) {
+      try {
+        const res = await fetch('/api/me/claim-daily', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uuid: this.uuid })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success) {
+            this.showToast(`🍯 Получено +${data.reward_amount} медовухи за ежедневный визит!`);
+            this.player.mead = data.new_mead_balance;
+            this.player.streak_days = data.streak_days;
+            this.player.can_claim_daily = false;
+            this.saveLocalPlayerProfile();
+            this.renderPlayerUI();
+            return;
+          }
         }
+      } catch (e) {
+        // Fall through
       }
-    } catch (e) {
-      // Fall through
     }
 
-    // Local claim daily
+    // Local claim daily (instant)
     const rewards = [30, 50, 75, 100, 150, 200, 300];
     const reward = rewards[Math.min(this.player.streak_days - 1, rewards.length - 1)] || 30;
     this.player.mead = (this.player.mead || 0) + reward;
@@ -428,16 +442,47 @@ class BragiApp {
     if (openUpgradesBtn && upgradesModal) {
       openUpgradesBtn.addEventListener('click', () => {
         this.renderUpgradesDrawer();
+        upgradesModal.style.display = 'flex';
         upgradesModal.classList.add('active');
       });
     }
 
-    // Generic modal close buttons
+    // Modal close buttons: ONLY close the specific parent modal
     document.querySelectorAll('.modal-close-trigger').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const parentModal = btn.closest('.modal-overlay');
+        if (parentModal) {
+          parentModal.classList.remove('active');
+          parentModal.style.display = 'none';
+        }
       });
     });
+
+    // Close on backdrop tap
+    ['upgradesModal', 'promoSuccessModal'].forEach(id => {
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+          }
+        });
+      }
+    });
+
+    // Ensure mobile video plays on first user interaction
+    const startVideoOnTouch = () => {
+      const v = document.getElementById('splashVideo');
+      if (v && v.paused && (!window.bragiGame || !window.bragiGame.isRunning)) {
+        v.muted = true;
+        v.defaultMuted = true;
+        v.play().catch(() => {});
+      }
+    };
+    window.addEventListener('touchstart', startVideoOnTouch, { passive: true, once: true });
+    window.addEventListener('click', startVideoOnTouch, { passive: true, once: true });
 
     // Skald name edit prompt
     const editNameBtn = document.getElementById('btnEditName');

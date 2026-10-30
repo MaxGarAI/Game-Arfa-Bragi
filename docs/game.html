@@ -88,8 +88,8 @@
   </main>
 
   <!-- Upgrades Drawer Modal (Accessible from anywhere) -->
-  <div class="modal-overlay" id="upgradesModal">
-    <div class="modal-content">
+  <div class="modal-overlay" id="upgradesModal" style="z-index: 1050;">
+    <div class="modal-content" style="max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
       <button class="modal-close-btn modal-close-trigger">&times;</button>
       <h3 class="font-viking text-gradient-gold" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Чертог улучшений скальда</h3>
       <p class="text-muted" style="font-size: 0.88rem;">Прокачивай арфу Браги и снаряжение за заработанную медовуху 🍯</p>
@@ -101,8 +101,8 @@
   </div>
 
   <!-- Promo Code Success Modal -->
-  <div class="modal-overlay" id="promoSuccessModal">
-    <div class="modal-content" style="text-align: center;">
+  <div class="modal-overlay" id="promoSuccessModal" style="z-index: 1050;">
+    <div class="modal-content" style="text-align: center; max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
       <button class="modal-close-btn modal-close-trigger">&times;</button>
       <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🎉</div>
       <h3 class="font-viking text-gradient-gold" style="font-size: 1.6rem; margin-bottom: 0.5rem;">Промокод получен!</h3>
@@ -158,11 +158,11 @@
         <canvas id="gameCanvas"></canvas>
 
         <!-- Splash Screen Overlay inside Pure Game -->
-        <div class="modal-overlay active" id="gameSplashOverlay" style="position: absolute; border-radius: var(--radius-md); overflow: hidden;">
+        <div class="modal-overlay active" id="gameSplashOverlay" style="position: absolute; border-radius: var(--radius-md); overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
           
           <!-- Background Video for Splash Menu Screen -->
           <div class="splash-video-box">
-            <video id="splashVideo" autoplay loop muted playsinline preload="auto" poster="static/video/poster.jpg">
+            <video id="splashVideo" autoplay loop muted playsinline webkit-playsinline="true" preload="auto" poster="static/video/poster.jpg">
               <source src="static/video/video.mp4" type="video/mp4">
             </video>
             <div class="splash-video-vignette"></div>
