@@ -30,7 +30,8 @@ class BragiAudioEngine {
 
   initBgMusic() {
     try {
-      this.bgMusic = new Audio('static/audio/viking_battle.mp3');
+      const basePath = window.location.pathname.startsWith('/Game-Arfa-Bragi') ? '/Game-Arfa-Bragi/' : '/';
+      this.bgMusic = new Audio(`${basePath}static/audio/viking_battle.mp3`);
       this.bgMusic.loop = true;
       this.bgMusic.volume = 0.55;
       this.bgMusic.muted = this.isMuted;

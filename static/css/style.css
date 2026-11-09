@@ -1003,24 +1003,24 @@ h1, h2, h3, h4, h5, h6 {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1050;
-  background: rgba(5, 7, 11, 0.92);
+  z-index: 2100;
+  background: rgba(5, 7, 11, 0.94);
   display: none;
   align-items: center;
   justify-content: center;
   padding: 1rem;
   opacity: 0;
   visibility: hidden;
+  pointer-events: none !important;
   transition: opacity 0.2s ease, visibility 0.2s ease;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  overflow: hidden; /* Avoid double nested scroll deadlock on mobile */
 }
 
 .modal-overlay.active {
   display: flex !important;
-  opacity: 1;
-  visibility: visible;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 .modal-content {
@@ -1045,8 +1045,8 @@ h1, h2, h3, h4, h5, h6 {
   transform: scale(1);
 }
 
-#upgradesModal, #promoSuccessModal {
-  z-index: 1050 !important;
+#upgradesModal, #promoSuccessModal, #gameResultModal {
+  z-index: 2100 !important;
 }
 
 .modal-close-btn {
@@ -1301,6 +1301,16 @@ h1, h2, h3, h4, h5, h6 {
   .streak-steps {
     grid-template-columns: repeat(4, 1fr);
   }
+  .hero-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  .hero-actions .btn {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
   .toast-container {
     left: 1rem;
     right: 1rem;
@@ -1315,7 +1325,7 @@ h1, h2, h3, h4, h5, h6 {
 .pure-game-modal {
   position: fixed;
   inset: 0;
-  z-index: 999;
+  z-index: 2000;
   background: #080a0f;
   display: flex;
   flex-direction: column;

@@ -96,15 +96,12 @@
     </p>
 
     <div class="hero-actions">
-      <button class="btn btn-gold btn-lg btn-open-game-window">
-        ⚡ Начать играть в Арфу
+      <button class="btn btn-gold btn-lg btn-open-game-window" style="font-size: 1.15rem; padding: 1.05rem 2.2rem; min-width: 260px;">
+        ⚡ НАЧАТЬ ИГРАТЬ В АРФУ
       </button>
       <a href="rewards.html" class="btn btn-outline btn-lg">
-        🍯 Обменять медовуху
+        🍯 Награды & Медовуха
       </a>
-      <button class="btn btn-outline" id="btnOpenUpgrades">
-        ✨ Прокачка скальда
-      </button>
     </div>
 
     <!-- Daily Login Streak Widget -->
@@ -160,6 +157,12 @@
       <button class="btn btn-gold btn-sm" id="btnClaimDaily" style="width: 100%;">
         Забрать награду Одина
       </button>
+
+      <div style="text-align: center; margin-top: 0.8rem;">
+        <button class="btn btn-outline btn-sm" id="btnOpenUpgrades" style="border-color: rgba(229, 169, 60, 0.4); font-size: 0.82rem; padding: 0.4rem 1rem;">
+          ✨ Чертог улучшений скальда (Лавка)
+        </button>
+      </div>
     </div>
   </div>
 </section>
@@ -419,7 +422,7 @@
   </main>
 
   <!-- Upgrades Drawer Modal (Accessible from anywhere) -->
-  <div class="modal-overlay" id="upgradesModal" style="z-index: 1050;">
+  <div class="modal-overlay" id="upgradesModal" style="display: none; z-index: 2100;">
     <div class="modal-content" style="max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
       <button class="modal-close-btn modal-close-trigger">&times;</button>
       <h3 class="font-viking text-gradient-gold" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Чертог улучшений скальда</h3>
@@ -432,7 +435,7 @@
   </div>
 
   <!-- Promo Code Success Modal -->
-  <div class="modal-overlay" id="promoSuccessModal" style="z-index: 1050;">
+  <div class="modal-overlay" id="promoSuccessModal" style="display: none; z-index: 2100;">
     <div class="modal-content" style="text-align: center; max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
       <button class="modal-close-btn modal-close-trigger">&times;</button>
       <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🎉</div>
@@ -519,12 +522,9 @@
               💻 <strong>На ПК:</strong> клавиши <strong>D, F, J, K</strong> или <strong>1, 2, 3, 4</strong> (Пробел — замедление)
             </div>
 
-            <div class="splash-actions">
-              <button class="btn btn-gold btn-lg" id="btnStartGame">
-                ⚡ Начать сагу!
-              </button>
-              <button class="btn btn-outline btn-sm" id="btnOpenUpgradesSplash">
-                ✨ Прокачка
+            <div class="splash-actions" style="width: 100%; display: flex; justify-content: center;">
+              <button class="btn btn-gold btn-lg" id="btnStartGame" style="width: 100%; max-width: 320px; font-size: 1.15rem; padding: 1rem 1.5rem; letter-spacing: 0.04em;">
+                ⚡ НАЧАТЬ ИГРУ
               </button>
             </div>
           </div>
@@ -547,7 +547,7 @@
   </div>
 
   <!-- Game Over / Victory Modal -->
-  <div class="modal-overlay" id="gameResultModal" style="z-index: 1001;">
+  <div class="modal-overlay" id="gameResultModal" style="display: none; z-index: 2100;">
     <div class="modal-content" style="text-align: center; max-width: 480px;">
       <img src="static/logo/emblem_gold.png" alt="АРФА БРАГИ" style="max-height: 70px; margin-bottom: 0.6rem;">
       <h3 class="font-viking text-gradient-gold" style="font-size: 1.6rem; margin-bottom: 0.2rem;">САГА ЗАВЕРШЕНА!</h3>

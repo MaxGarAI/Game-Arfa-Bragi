@@ -3,15 +3,15 @@
 {% block title %}Игра «Арфа Браги» — Ритм-кликер крафтовой пивоварни{% endblock %}
 
 {% block content %}
-<section class="section" style="text-align: center; padding: 5rem 1rem;">
-  <div class="container" style="max-width: 500px;">
-    <img src="{{ url_for('static', filename=logos.main_logo) }}" alt="{{ brewery_name }}" style="max-height: 80px; margin-bottom: 1.25rem;">
-    <h1 class="font-viking text-gradient-gold" style="font-size: 2.2rem; margin-bottom: 0.8rem;">АРФА БРАГИ</h1>
-    <p class="text-muted" style="margin-bottom: 2rem;">
+<section class="section" style="text-align: center; padding: 4rem 1rem; min-height: 80vh; display: flex; align-items: center; justify-content: center;">
+  <div class="container" style="max-width: 480px;">
+    <img src="{{ url_for('static', filename=logos.main_logo) }}" alt="{{ brewery_name }}" style="max-height: 85px; margin-bottom: 1.2rem; filter: drop-shadow(0 0 16px rgba(229, 169, 60, 0.45));">
+    <h1 class="font-viking text-gradient-gold" style="font-size: 2.3rem; margin-bottom: 0.8rem; letter-spacing: 0.05em;">АРФА БРАГИ</h1>
+    <p class="text-muted" style="margin-bottom: 2rem; font-size: 0.95rem;">
       Если чертог игры не открылся на весь экран автоматически, нажми кнопку ниже:
     </p>
-    <button class="btn btn-gold btn-lg btn-open-game-window" onclick="if(window.bragiGame){window.bragiGame.openGameModal();}else{location.reload();}" style="width: 100%;">
-      ⚡ Открыть чертог игры
+    <button class="btn btn-gold btn-lg btn-open-game-window" id="btnLaunchGameDirect" onclick="launchBragiGameDirect()" style="width: 100%; font-size: 1.15rem; padding: 1.1rem 1.5rem; letter-spacing: 0.04em;">
+      ⚡ НАЧАТЬ ИГРУ
     </button>
   </div>
 </section>
@@ -19,12 +19,26 @@
 
 {% block scripts_extra %}
 <script>
+  function launchBragiGameDirect() {
+    if (window.bragiGame && typeof window.bragiGame.openGameModal === 'function') {
+      window.bragiGame.openGameModal();
+    } else {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (window.bragiGame && typeof window.bragiGame.openGameModal === 'function') {
+          clearInterval(interval);
+          window.bragiGame.openGameModal();
+        } else if (attempts > 30) {
+          clearInterval(interval);
+          location.reload();
+        }
+      }, 60);
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-      if (window.bragiGame) {
-        window.bragiGame.openGameModal();
-      }
-    }, 120);
+    launchBragiGameDirect();
   });
 </script>
 {% endblock %}

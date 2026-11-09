@@ -32,6 +32,10 @@ class BragiHarpGame {
           this.playerName = tgUser.first_name || tgUser.username;
           localStorage.setItem('bragi_player_name', this.playerName);
         }
+        // If opened inside Telegram, automatically open pure game modal
+        if (tg.initData) {
+          setTimeout(() => this.openGameModal(), 120);
+        }
       } catch (e) {}
     }
 
@@ -86,11 +90,12 @@ class BragiHarpGame {
     // Screen shake
     this.shakeIntensity = 0;
 
-    // Visual assets (using relative path for GitHub Pages compatibility)
+    // Visual assets with safe path resolver
+    const basePath = window.location.pathname.startsWith('/Game-Arfa-Bragi') ? '/Game-Arfa-Bragi/' : '/';
     this.emblemImg = new Image();
-    this.emblemImg.src = 'static/logo/emblem_gold.png';
+    this.emblemImg.src = `${basePath}static/logo/emblem_gold.png`;
     this.logoImg = new Image();
-    this.logoImg.src = 'static/logo/logo_gold.png';
+    this.logoImg.src = `${basePath}static/logo/logo_gold.png`;
 
     // Target line (where runes should be hit)
     this.hitLineY = 0;
@@ -124,6 +129,14 @@ class BragiHarpGame {
   openGameModal() {
     const modal = document.getElementById('pureGameModal');
     if (!modal) return;
+
+    // Ensure any open upgrades modal is closed so pure game window is unobstructed
+    const upgModal = document.getElementById('upgradesModal');
+    if (upgModal) {
+      upgModal.classList.remove('active');
+      upgModal.style.display = 'none';
+    }
+
     modal.style.display = 'flex';
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -138,6 +151,7 @@ class BragiHarpGame {
     window.bragiAudio.ensureContext();
     const splashVideo = document.getElementById('splashVideo');
     if (splashVideo) {
+      splashVideo.style.display = 'block';
       splashVideo.muted = true;
       splashVideo.defaultMuted = true;
       splashVideo.setAttribute('playsinline', '');
@@ -333,6 +347,13 @@ class BragiHarpGame {
     this.isPaused = false;
     this.lastFrameTime = performance.now();
 
+    // Ensure any open upgrades modal is closed when starting the game
+    const upgModal = document.getElementById('upgradesModal');
+    if (upgModal) {
+      upgModal.classList.remove('active');
+      upgModal.style.display = 'none';
+    }
+
     // Hide splash & result modals completely (display: none prevents any GPU compositing)
     const splash = document.getElementById('gameSplashOverlay');
     if (splash) {
@@ -345,11 +366,12 @@ class BragiHarpGame {
       resultModal.style.display = 'none';
     }
 
-    // Stop splash video completely to free GPU and decoder memory
+    // Stop and hide splash video completely to free GPU and decoder memory during gameplay
     const splashVideo = document.getElementById('splashVideo');
     if (splashVideo) {
       try {
         splashVideo.pause();
+        splashVideo.style.display = 'none';
         if (splashVideo.readyState >= 1) splashVideo.currentTime = 0;
       } catch (e) {}
     }
@@ -962,27 +984,29 @@ class BragiHarpGame {
   }
 
   drawParticles() {
-    for (const p of this.particles) {
-      this.ctx.save();
+    if (this.particles.length === 0) return;
+    for (let i = 0; i < this.particles.length; i++) {
+      const p = this.particles[i];
       this.ctx.globalAlpha = Math.max(0, p.life);
       this.ctx.fillStyle = p.color;
       this.ctx.beginPath();
       this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       this.ctx.fill();
-      this.ctx.restore();
     }
+    this.ctx.globalAlpha = 1.0;
   }
 
   drawFloatingTexts() {
-    for (const ft of this.floatingTexts) {
-      this.ctx.save();
+    if (this.floatingTexts.length === 0) return;
+    this.ctx.textAlign = 'center';
+    for (let i = 0; i < this.floatingTexts.length; i++) {
+      const ft = this.floatingTexts[i];
       this.ctx.globalAlpha = Math.max(0, ft.life);
       this.ctx.fillStyle = ft.color;
       this.ctx.font = `800 ${ft.fontSize}px Unbounded, sans-serif`;
-      this.ctx.textAlign = 'center';
       this.ctx.fillText(ft.text, ft.x, ft.y);
-      this.ctx.restore();
     }
+    this.ctx.globalAlpha = 1.0;
   }
 
   drawProgressBar() {
@@ -1007,6 +1031,7 @@ class BragiHarpGame {
 
     const splashVideo = document.getElementById('splashVideo');
     if (splashVideo) {
+      splashVideo.style.display = 'block';
       try { splashVideo.play().catch(() => {}); } catch (e) {}
     }
 

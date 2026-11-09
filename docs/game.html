@@ -75,15 +75,15 @@
   <!-- Main Body Content -->
   <main>
     
-<section class="section" style="text-align: center; padding: 5rem 1rem;">
-  <div class="container" style="max-width: 500px;">
-    <img src="static/logo/logo_gold.png" alt="АРФА БРАГИ" style="max-height: 80px; margin-bottom: 1.25rem;">
-    <h1 class="font-viking text-gradient-gold" style="font-size: 2.2rem; margin-bottom: 0.8rem;">АРФА БРАГИ</h1>
-    <p class="text-muted" style="margin-bottom: 2rem;">
+<section class="section" style="text-align: center; padding: 4rem 1rem; min-height: 80vh; display: flex; align-items: center; justify-content: center;">
+  <div class="container" style="max-width: 480px;">
+    <img src="static/logo/logo_gold.png" alt="АРФА БРАГИ" style="max-height: 85px; margin-bottom: 1.2rem; filter: drop-shadow(0 0 16px rgba(229, 169, 60, 0.45));">
+    <h1 class="font-viking text-gradient-gold" style="font-size: 2.3rem; margin-bottom: 0.8rem; letter-spacing: 0.05em;">АРФА БРАГИ</h1>
+    <p class="text-muted" style="margin-bottom: 2rem; font-size: 0.95rem;">
       Если чертог игры не открылся на весь экран автоматически, нажми кнопку ниже:
     </p>
-    <button class="btn btn-gold btn-lg btn-open-game-window" onclick="if(window.bragiGame){window.bragiGame.openGameModal();}else{location.reload();}" style="width: 100%;">
-      ⚡ Открыть чертог игры
+    <button class="btn btn-gold btn-lg btn-open-game-window" id="btnLaunchGameDirect" onclick="launchBragiGameDirect()" style="width: 100%; font-size: 1.15rem; padding: 1.1rem 1.5rem; letter-spacing: 0.04em;">
+      ⚡ НАЧАТЬ ИГРУ
     </button>
   </div>
 </section>
@@ -91,7 +91,7 @@
   </main>
 
   <!-- Upgrades Drawer Modal (Accessible from anywhere) -->
-  <div class="modal-overlay" id="upgradesModal" style="z-index: 1050;">
+  <div class="modal-overlay" id="upgradesModal" style="display: none; z-index: 2100;">
     <div class="modal-content" style="max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
       <button class="modal-close-btn modal-close-trigger">&times;</button>
       <h3 class="font-viking text-gradient-gold" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Чертог улучшений скальда</h3>
@@ -104,7 +104,7 @@
   </div>
 
   <!-- Promo Code Success Modal -->
-  <div class="modal-overlay" id="promoSuccessModal" style="z-index: 1050;">
+  <div class="modal-overlay" id="promoSuccessModal" style="display: none; z-index: 2100;">
     <div class="modal-content" style="text-align: center; max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
       <button class="modal-close-btn modal-close-trigger">&times;</button>
       <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🎉</div>
@@ -191,12 +191,9 @@
               💻 <strong>На ПК:</strong> клавиши <strong>D, F, J, K</strong> или <strong>1, 2, 3, 4</strong> (Пробел — замедление)
             </div>
 
-            <div class="splash-actions">
-              <button class="btn btn-gold btn-lg" id="btnStartGame">
-                ⚡ Начать сагу!
-              </button>
-              <button class="btn btn-outline btn-sm" id="btnOpenUpgradesSplash">
-                ✨ Прокачка
+            <div class="splash-actions" style="width: 100%; display: flex; justify-content: center;">
+              <button class="btn btn-gold btn-lg" id="btnStartGame" style="width: 100%; max-width: 320px; font-size: 1.15rem; padding: 1rem 1.5rem; letter-spacing: 0.04em;">
+                ⚡ НАЧАТЬ ИГРУ
               </button>
             </div>
           </div>
@@ -219,7 +216,7 @@
   </div>
 
   <!-- Game Over / Victory Modal -->
-  <div class="modal-overlay" id="gameResultModal" style="z-index: 1001;">
+  <div class="modal-overlay" id="gameResultModal" style="display: none; z-index: 2100;">
     <div class="modal-content" style="text-align: center; max-width: 480px;">
       <img src="static/logo/emblem_gold.png" alt="АРФА БРАГИ" style="max-height: 70px; margin-bottom: 0.6rem;">
       <h3 class="font-viking text-gradient-gold" style="font-size: 1.6rem; margin-bottom: 0.2rem;">САГА ЗАВЕРШЕНА!</h3>
@@ -314,12 +311,26 @@
   <script src="static/js/main.js"></script>
   
 <script>
+  function launchBragiGameDirect() {
+    if (window.bragiGame && typeof window.bragiGame.openGameModal === 'function') {
+      window.bragiGame.openGameModal();
+    } else {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (window.bragiGame && typeof window.bragiGame.openGameModal === 'function') {
+          clearInterval(interval);
+          window.bragiGame.openGameModal();
+        } else if (attempts > 30) {
+          clearInterval(interval);
+          location.reload();
+        }
+      }, 60);
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-      if (window.bragiGame) {
-        window.bragiGame.openGameModal();
-      }
-    }, 120);
+    launchBragiGameDirect();
   });
 </script>
 
