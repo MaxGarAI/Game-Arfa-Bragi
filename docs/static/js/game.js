@@ -18,6 +18,29 @@ class BragiHarpGame {
     this.odinBlessings = 0;
     this.breweryBuffGames = 0;
 
+    // Telegram Mini App integration
+    if (window.Telegram && window.Telegram.WebApp) {
+      try {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
+        if (tg.setHeaderColor) tg.setHeaderColor('#0a0d14');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#080a0f');
+        const tgUser = tg.initDataUnsafe && tg.initDataUnsafe.user;
+        if (tgUser && (tgUser.first_name || tgUser.username)) {
+          this.playerName = tgUser.first_name || tgUser.username;
+          localStorage.setItem('bragi_player_name', this.playerName);
+        }
+      } catch (e) {}
+    }
+
+    // Cached HUD element references (avoids getElementById in animation loop)
+    this.hudScoreEls = ['pureHudScore', 'gameHudScore'].map(id => document.getElementById(id)).filter(Boolean);
+    this.hudComboEls = ['pureHudCombo', 'gameHudCombo'].map(id => document.getElementById(id)).filter(Boolean);
+    this.hudTimeEls = ['pureHudTime', 'gameHudTime'].map(id => document.getElementById(id)).filter(Boolean);
+    this.lastShownTime = -1;
+
     // Game loop & timing
     this.isRunning = false;
     this.isPaused = false;
@@ -82,7 +105,7 @@ class BragiHarpGame {
     const box = document.getElementById('pureCanvasBox') || this.canvas.parentElement;
     if (!box) return;
     const rect = box.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
     this.width = Math.round(rect.width) || window.innerWidth;
     this.height = Math.round(rect.height) || 480;
@@ -241,6 +264,8 @@ class BragiHarpGame {
         btn.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
+          const splashVideo = document.getElementById('splashVideo');
+          if (splashVideo) { try { splashVideo.pause(); } catch (err) {} }
           if (window.bragiApp) window.bragiApp.renderUpgradesDrawer();
           upgradesModal.style.display = 'flex';
           upgradesModal.classList.add('active');
@@ -478,7 +503,11 @@ class BragiHarpGame {
       const ptsEarned = Math.round(basePoints * comboMultiplier * harpBonus * buffBonus * caskMultiplier);
       this.score += ptsEarned;
 
-      // Sound
+      // Sound & Haptic
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred(bestRune.isCask ? 'heavy' : (minDistance < 26 ? 'medium' : 'light'));
+      }
+
       if (bestRune.isCask) {
         window.bragiAudio.playBeerCaskBurst();
         this.addFloatingText(bestRune.x, bestRune.y - 20, 'ХМЕЛЬНОЙ ВЗРЫВ x2! 🍺', '#ffd700', 18);
@@ -503,6 +532,9 @@ class BragiHarpGame {
     this.combo = 0;
     this.runesMissed++;
     this.shakeIntensity = 6;
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+    }
     window.bragiAudio.playMissSound();
     this.updateHUD();
   }
@@ -569,6 +601,16 @@ class BragiHarpGame {
       this.timeRemaining = 0;
       this.endGame();
       return;
+    }
+
+    // Refresh timer text once per second
+    const curSec = Math.ceil(this.timeRemaining);
+    if (curSec !== this.lastShownTime) {
+      this.lastShownTime = curSec;
+      const timeStr = `${curSec}с`;
+      for (let i = 0; i < this.hudTimeEls.length; i++) {
+        this.hudTimeEls[i].textContent = timeStr;
+      }
     }
 
     // Odin's slow motion timer
@@ -693,6 +735,10 @@ class BragiHarpGame {
   }
 
   drawHarpStrings() {
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    this.ctx.font = '600 12px Montserrat, sans-serif';
+    this.ctx.textAlign = 'center';
+
     for (let i = 0; i < this.lanesCount; i++) {
       const laneX = i * this.laneWidth;
       const centerX = laneX + this.laneWidth / 2;
@@ -706,18 +752,22 @@ class BragiHarpGame {
       this.ctx.stroke();
 
       // Golden acoustic harp string
-      const vib = Math.sin(Date.now() * 0.04) * this.stringVibrations[i];
+      const vib = this.stringVibrations[i];
       this.ctx.beginPath();
       this.ctx.moveTo(centerX, 0);
-      this.ctx.quadraticCurveTo(centerX + vib, this.height / 2, centerX, this.height);
-      this.ctx.strokeStyle = this.stringVibrations[i] > 1 ? '#ffc453' : 'rgba(229, 169, 60, 0.35)';
-      this.ctx.lineWidth = this.stringVibrations[i] > 1 ? 3 : 1.5;
+      if (vib > 0.4) {
+        const wave = Math.sin(Date.now() * 0.04) * vib;
+        this.ctx.quadraticCurveTo(centerX + wave, this.height * 0.5, centerX, this.height);
+        this.ctx.strokeStyle = '#ffc453';
+        this.ctx.lineWidth = 2.5;
+      } else {
+        this.ctx.lineTo(centerX, this.height);
+        this.ctx.strokeStyle = 'rgba(229, 169, 60, 0.35)';
+        this.ctx.lineWidth = 1.5;
+      }
       this.ctx.stroke();
 
       // Key binding indicator label at bottom
-      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-      this.ctx.font = '600 12px Montserrat, sans-serif';
-      this.ctx.textAlign = 'center';
       this.ctx.fillText(this.laneKeys[i], centerX, this.height - 12);
     }
   }
@@ -947,20 +997,8 @@ class BragiHarpGame {
   updateHUD() {
     const scoreStr = this.score.toLocaleString('ru-RU');
     const comboStr = `${this.combo}x`;
-    const timeStr = `${Math.ceil(this.timeRemaining)}с`;
-
-    ['pureHudScore', 'gameHudScore'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = scoreStr;
-    });
-    ['pureHudCombo', 'gameHudCombo'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = comboStr;
-    });
-    ['pureHudTime', 'gameHudTime'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = timeStr;
-    });
+    for (let i = 0; i < this.hudScoreEls.length; i++) this.hudScoreEls[i].textContent = scoreStr;
+    for (let i = 0; i < this.hudComboEls.length; i++) this.hudComboEls[i].textContent = comboStr;
   }
 
   async endGame() {

@@ -110,6 +110,7 @@ class BragiAudioEngine {
 
   /**
    * Synthesize an acoustic Celtic harp pluck with wooden resonance
+   * Ultra-lightweight 1-oscillator design with instant GC cleanup
    */
   playHarpPluck(stringIndex = 0, isBonus = false) {
     if (this.isMuted) return;
@@ -119,67 +120,30 @@ class BragiAudioEngine {
     const now = this.ctx.currentTime;
     const freq = this.harpFrequencies[stringIndex % this.harpFrequencies.length] * (isBonus ? 1.5 : 1.0);
 
-    // Primary plucked string oscillator (triangle with rich fundamental)
-    const osc1 = this.ctx.createOscillator();
-    osc1.type = 'triangle';
-    osc1.frequency.setValueAtTime(freq, now);
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
 
-    // Secondary harmonic oscillator (sine slightly detuned for organic wooden beating)
-    const osc2 = this.ctx.createOscillator();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(freq * 2.01, now);
+    osc.type = isBonus ? 'sine' : 'triangle';
+    osc.frequency.setValueAtTime(freq, now);
 
-    // Initial sharp pluck transient impulse (simulates nail or plectrum hitting bronze string)
-    const pluckNoise = this.ctx.createOscillator();
-    pluckNoise.type = 'sawtooth';
-    pluckNoise.frequency.setValueAtTime(freq * 3.5, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(isBonus ? 0.75 : 0.6, now + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + (isBonus ? 1.1 : 0.7));
 
-    // Dynamic lowpass filter (opens on pluck, decays rapidly mimicking string damping)
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(isBonus ? 4200 : 2800, now);
-    filter.frequency.exponentialRampToValueAtTime(320, now + 1.2);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
 
-    // String envelope (exponential decay)
-    const stringGain = this.ctx.createGain();
-    stringGain.gain.setValueAtTime(0.0001, now);
-    stringGain.gain.linearRampToValueAtTime(isBonus ? 0.9 : 0.65, now + 0.006); // ultra fast attack
-    stringGain.gain.exponentialRampToValueAtTime(0.0001, now + (isBonus ? 2.2 : 1.6));
+    const stopTime = now + (isBonus ? 1.15 : 0.75);
+    osc.start(now);
+    osc.stop(stopTime);
 
-    // Transient pluck gain
-    const pluckGain = this.ctx.createGain();
-    pluckGain.gain.setValueAtTime(0.4, now);
-    pluckGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-
-    // Routing
-    osc1.connect(filter);
-    osc2.connect(filter);
-    pluckNoise.connect(pluckGain);
-    pluckGain.connect(filter);
-
-    filter.connect(stringGain);
-    stringGain.connect(this.masterGain);
-
-    // Start & auto-stop oscillators
-    osc1.start(now);
-    osc2.start(now);
-    pluckNoise.start(now);
-
-    const stopTime = now + (isBonus ? 2.3 : 1.7);
-    osc1.stop(stopTime);
-    osc2.stop(stopTime);
-    pluckNoise.stop(now + 0.05);
-
-    setTimeout(() => {
+    // Instant garbage collection on sound completion
+    osc.onended = () => {
       try {
-        osc1.disconnect();
-        osc2.disconnect();
-        pluckNoise.disconnect();
-        pluckGain.disconnect();
-        filter.disconnect();
-        stringGain.disconnect();
+        osc.disconnect();
+        gain.disconnect();
       } catch (e) {}
-    }, (isBonus ? 2400 : 1800));
+    };
   }
 
   /**
@@ -190,77 +154,66 @@ class BragiAudioEngine {
     this.ensureContext();
     if (!this.ctx) return;
 
-    // Majestic rising 5-note brass fanfare
     const notes = [146.83, 220.00, 293.66, 369.99, 440.00];
     notes.forEach((freq, idx) => {
-      setTimeout(() => {
-        if (!this.ctx || this.isMuted) return;
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const osc2 = this.ctx.createOscillator();
-        const filter = this.ctx.createBiquadFilter();
-        const gain = this.ctx.createGain();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime + (idx * 0.1);
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
 
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(freq, now);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
 
-        osc2.type = 'triangle';
-        osc2.frequency.setValueAtTime(freq * 1.005, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.5, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
 
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(1800, now);
-        filter.frequency.exponentialRampToValueAtTime(450, now + 1.2);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
 
-        gain.gain.setValueAtTime(0.01, now);
-        gain.gain.linearRampToValueAtTime(0.5, now + 0.04);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
-
-        osc.connect(filter);
-        osc2.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.masterGain);
-
-        osc.start(now);
-        osc2.start(now);
-        osc.stop(now + 1.6);
-        osc2.stop(now + 1.6);
-      }, idx * 110);
+      osc.start(now);
+      osc.stop(now + 1.25);
+      osc.onended = () => {
+        try { osc.disconnect(); gain.disconnect(); } catch (e) {}
+      };
     });
   }
 
   /**
-   * Sound for hitting the special golden beer cask rune (fanfare + harp sparkle)
+   * Sound for hitting the special golden beer cask rune
    */
   playBeerCaskBurst() {
     if (this.isMuted) return;
     this.ensureContext();
     if (!this.ctx) return;
 
-    // Pluck 3 rapid celestial harp notes in an arpeggio
-    const chord = [293.66, 369.99, 440.00, 587.33]; // D major chord
+    const chord = [293.66, 369.99, 440.00, 587.33];
     chord.forEach((freq, idx) => {
-      setTimeout(() => {
-        if (!this.ctx || this.isMuted) return;
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, now);
-        
-        gain.gain.setValueAtTime(0.01, now);
-        gain.gain.linearRampToValueAtTime(0.4, now + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
-        
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-        osc.start(now);
-        osc.stop(now + 1.5);
-      }, idx * 60);
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime + (idx * 0.05);
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.35, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(now);
+      osc.stop(now + 0.95);
+      osc.onended = () => {
+        try { osc.disconnect(); gain.disconnect(); } catch (e) {}
+      };
     });
   }
 
   /**
-   * Sound effect for missing a rune (muted dull wooden tap)
+   * Sound effect for missing a rune
    */
   playMissSound() {
     if (this.isMuted) return;
@@ -270,24 +223,22 @@ class BragiAudioEngine {
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    const filter = this.ctx.createBiquadFilter();
 
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(85, now);
-    osc.frequency.exponentialRampToValueAtTime(40, now + 0.12);
+    osc.frequency.setValueAtTime(80, now);
+    osc.frequency.exponentialRampToValueAtTime(35, now + 0.1);
 
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(220, now);
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
-    gain.gain.setValueAtTime(0.3, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-
-    osc.connect(filter);
-    filter.connect(gain);
+    osc.connect(gain);
     gain.connect(this.masterGain);
 
     osc.start(now);
-    osc.stop(now + 0.18);
+    osc.stop(now + 0.14);
+    osc.onended = () => {
+      try { osc.disconnect(); gain.disconnect(); } catch (e) {}
+    };
   }
 
   /**
@@ -301,26 +252,23 @@ class BragiAudioEngine {
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    const filter = this.ctx.createBiquadFilter();
 
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(320, now);
-    osc.frequency.exponentialRampToValueAtTime(55, now + 1.2);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(260, now);
+    osc.frequency.exponentialRampToValueAtTime(50, now + 1.0);
 
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1400, now);
-    filter.frequency.exponentialRampToValueAtTime(180, now + 1.2);
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.4, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
 
-    gain.gain.setValueAtTime(0.01, now);
-    gain.gain.linearRampToValueAtTime(0.5, now + 0.1);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
-
-    osc.connect(filter);
-    filter.connect(gain);
+    osc.connect(gain);
     gain.connect(this.masterGain);
 
     osc.start(now);
-    osc.stop(now + 2.0);
+    osc.stop(now + 1.25);
+    osc.onended = () => {
+      try { osc.disconnect(); gain.disconnect(); } catch (e) {}
+    };
   }
 
   /**

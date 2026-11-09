@@ -15,6 +15,9 @@
   <!-- Dynamic Favicon from logo files -->
   <link rel="icon" type="image/png" href="{{ url_for('static', filename=logos.favicon) }}">
 
+  <!-- Telegram WebApp SDK (Seamless Telegram Mini App support) -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <!-- Fonts & Styles -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   {% block head_extra %}{% endblock %}

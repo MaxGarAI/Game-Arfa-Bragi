@@ -66,9 +66,15 @@ class BragiApp {
     }
 
     if (!this.player) {
+      let defaultName = localStorage.getItem('bragi_player_name') || 'Скальд';
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+        const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+        defaultName = tgUser.first_name || tgUser.username || defaultName;
+      }
+
       this.player = {
         uuid: this.uuid,
-        name: localStorage.getItem('bragi_player_name') || 'Скальд',
+        name: defaultName,
         score: 0,
         highest_score: 0,
         mead: 150,
@@ -84,6 +90,11 @@ class BragiApp {
         brewery_buff_games: 0,
         claimed_promos: []
       };
+    } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+      const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+      if (tgUser.first_name && this.player.name === 'Скальд') {
+        this.player.name = tgUser.first_name;
+      }
     }
 
     // Default upgrades catalog for offline / static hosting
