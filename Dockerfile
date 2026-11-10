@@ -2,20 +2,18 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Prevent Python from writing .pyc files & buffer output
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Copy requirements and install
+# Copy requirements and install (pure Python wheels, no gcc/apt needed!)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application source
 COPY . .
 
-# Initialize and seed database if not exists
+# Initialize and seed database with beer catalog and bots
 RUN python seed.py
 
 # Expose game port

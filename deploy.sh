@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ========================================================
 # Скрипт автоматического развёртывания игры «Арфа Браги»
-# на сервере VPS (Firstbyte / Ubuntu / Debian)
+# на сервере VPS (Firstbyte / Ubuntu / Debian / CentOS)
 # ========================================================
 
 set -e
@@ -11,7 +11,11 @@ echo "⚔️ Развёртывание игры «АРФА БРАГИ» на с
 # 1. Проверка наличия Git
 if ! command -v git &> /dev/null; then
     echo "📦 Установка git..."
-    apt-get update && apt-get install -y git curl
+    if command -v apt-get &> /dev/null; then
+        apt-get update && apt-get install -y git curl
+    elif command -v yum &> /dev/null; then
+        yum install -y git curl
+    fi
 fi
 
 # 2. Проверка наличия Docker
@@ -24,12 +28,14 @@ if ! command -v docker &> /dev/null; then
     systemctl start docker
 fi
 
-# 3. Разблокировка IP в fail2ban (если IP был заблокирован из-за ошибок ввода пароля)
+# 3. Разблокировка IP в fail2ban и iptables
 if command -v fail2ban-client &> /dev/null; then
-    echo "🛡️ Проверка fail2ban..."
+    echo "🛡️ Снятие блокировок fail2ban..."
     fail2ban-client unban 91.238.88.24 2>/dev/null || true
     fail2ban-client unban --all 2>/dev/null || true
 fi
+iptables -D INPUT -s 91.238.88.24 -j DROP 2>/dev/null || true
+iptables -D INPUT -s 91.238.88.24 -j REJECT 2>/dev/null || true
 
 # 4. Переход в директорию проекта
 APP_DIR="/opt/arfa-bragi"
@@ -54,10 +60,15 @@ else
     docker-compose up -d --build
 fi
 
-# 6. Открытие портов в ufw/iptables (если включен фаервол)
+# 6. Открытие портов в ufw/firewalld (если включен фаервол)
 if command -v ufw &> /dev/null; then
     ufw allow 80/tcp 2>/dev/null || true
     ufw allow 5000/tcp 2>/dev/null || true
+fi
+if command -v firewall-cmd &> /dev/null; then
+    firewall-cmd --permanent --add-port=80/tcp 2>/dev/null || true
+    firewall-cmd --permanent --add-port=5000/tcp 2>/dev/null || true
+    firewall-cmd --reload 2>/dev/null || true
 fi
 
 echo ""
