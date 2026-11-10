@@ -1,19 +1,11 @@
 services:
   arfa-bragi:
-    build: .
+    build:
+      context: .
+      network: host
     container_name: arfa-bragi-app
     restart: always
-    dns:
-      - 77.88.8.8
-      - 8.8.8.8
-    ports:
-      - "80:5000"
-      - "5000:5000"
+    network_mode: host
     environment:
       - FLASK_ENV=production
       - PYTHONUNBUFFERED=1
-    volumes:
-      - db_data:/app/instance
-
-volumes:
-  db_data:

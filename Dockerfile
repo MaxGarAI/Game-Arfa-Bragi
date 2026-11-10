@@ -2,22 +2,23 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Prevent Python from writing .pyc files & buffer output
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# Copy requirements and install (pure Python wheels, no gcc/apt needed!)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application source
+# Install dependencies using high-speed Yandex PyPI mirror in Russia (with official PyPI fallback)
+RUN pip install --no-cache-dir --prefer-binary \
+    -i https://mirror.yandex.ru/pypi/simple \
+    --extra-index-url https://pypi.org/simple \
+    -r requirements.txt
+
 COPY . .
 
-# Initialize and seed database with beer catalog and bots
+# Initialize and seed database with bots and craft beers
 RUN python seed.py
 
-# Expose game port
-EXPOSE 5000
+EXPOSE 80 5000
 
-# Start with production-grade Gunicorn WSGI server
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "4", "--timeout", "120", "app:app"]
+# Start with Gunicorn on port 80 (accessible directly in browser without :5000)
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "2", "--threads", "4", "app:app"]
