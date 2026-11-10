@@ -1,0 +1,16 @@
+services:
+  arfa-bragi:
+    build: .
+    container_name: arfa-bragi-app
+    restart: always
+    ports:
+      - "80:5000"
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - db_data:/app/instance
+
+volumes:
+  db_data:
